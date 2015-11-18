@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/cv"
+        >
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            >
+
+            <app.wingman.utils.Roundedimageview
+
+
+                android:id="@+id/person_photo"
+                android:layout_width="80dp"
+
+                   android:layout_centerVertical="true"
+                android:layout_alignParentLeft="true"
+                android:layout_height="80dp" />
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/cntctperson_name"
+
+               android:layout_toRightOf="@+id/person_photo"
+                android:layout_alignTop="@id/person_photo"
+                android:textSize="12sp"
+                />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/cntctemail"
+   android:layout_toRightOf="@+id/person_photo"
+                android:layout_below="@+id/cntctperson_name"
+
+                android:textSize="12sp"
+                />
+
+<Button
+    android:text="@string/action_invite"
+    android:layout_width="wrap_content"
+    android:layout_alignParentRight="true"
+    android:layout_marginRight="5dp"
+    android:layout_centerVertical="true"
+    android:id="@+id/invite"
+    android:layout_height="wrap_content" />
+
+        </RelativeLayout>
+
+    </android.support.v7.widget.CardView>
+
+</LinearLayout>
