@@ -1,5 +1,6 @@
 package app.wingman.ui.activities;
 
+import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
@@ -30,7 +31,9 @@ import android.provider.MediaStore;
 import android.provider.SyncStateContract;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
@@ -42,6 +45,7 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -55,18 +59,33 @@ import com.facebook.SessionState;
 import com.facebook.Settings;
 import com.facebook.UiLifecycleHelper;
 import com.facebook.model.GraphUser;
+import com.novell.sasl.client.DigestMD5SaslClient;
 import com.quickblox.auth.QBAuth;
 import com.quickblox.auth.model.QBSession;
 
+import com.quickblox.content.QBContent;
+import com.quickblox.content.model.QBFile;
 import com.quickblox.core.QBEntityCallback;
 import com.quickblox.core.QBEntityCallbackImpl;
+import com.quickblox.core.QBProgressCallback;
+import com.quickblox.core.exception.BaseServiceException;
+import com.quickblox.core.exception.QBResponseException;
 import com.quickblox.core.helper.StringifyArrayList;
 
+import com.quickblox.location.QBLocations;
+import com.quickblox.location.model.QBLocation;
 import com.quickblox.users.QBUsers;
 import com.quickblox.users.model.QBUser;
+import com.quickblox.users.result.QBUserResult;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -76,6 +95,8 @@ import java.util.List;
 import app.wingman.ApplicationSingleton;
 import app.wingman.R;
 import app.wingman.core.ChatService;
+import app.wingman.networks.Connecttoget;
+import app.wingman.settings.Urls;
 import app.wingman.utils.PreferencesUtils;
 
 import static android.Manifest.permission.CAMERA;
@@ -84,12 +105,14 @@ import static android.Manifest.permission.READ_CONTACTS;
 /**
  * A login screen that offers login via email/password.
  */
-public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<Cursor>,View.OnClickListener {
+public class LoginActivity extends BaseActivity implements LoaderCallbacks<Cursor>,View.OnClickListener {
 
     /**
      * Id to identity READ_CONTACTS permission request.
      */
     private static final int REQUEST_READ_CONTACTS = 0;
+    private static final int REQUEST_READ_EXTERNAL_STORAGE= 1;
+    private static final int REQUEST_WRITE_EXTERNAL_STORAGE= 2;
 
     /**
      * A dummy authentication store containing known user names and passwords.
@@ -127,11 +150,15 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private static final int CAMERA_REQUEST = 1888;
     private static final int CHOICE_AVATAR_FROM_CAMERA_CROP=1000;
     private static int CHOICE_AVATAR_FROM_GALLERY = 1;
-    String cameraFileName;
+    public static String cameraFileName;
     AlertDialog alert;
     LinearLayout alertLayout;
+    ImageView mUserImage;
+    TextView mUserDescription;
+    LinearLayout mUserTopLayout;
 
     int count=0;
+    QBUser crntUser;
 
 
 
@@ -148,39 +175,62 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         mPhone = (EditText) findViewById(R.id.editetxt_phone);
         fblogin=(Button)findViewById(R.id.fbsigninbtn);
         alertLayout=(LinearLayout)findViewById(R.id.user_layout);
+        mUserTopLayout=(LinearLayout)findViewById(R.id.user_toplayout);
         fblogin.setOnClickListener(this);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
                 if (id == R.id.login || id == EditorInfo.IME_NULL) {
-                    attemptLogin();
-                    return true;
+                    if (mEmailSignInButton.getText().toString().equals(getResources().getString(R.string.action_sign_in)))
+
+                        attemptLogin();
+
+                    else {
+                        if (count == 0) {
+                            alertLayout.setVisibility(View.VISIBLE);
+                            mUserTopLayout.setVisibility(View.GONE);
+                            count++;
+                        } else {
+                            if (cameraFileName.length() > 0) {
+                                new CheckEmail().execute();
+                            } else {
+                                Toast.makeText(LoginActivity.this, "Please select a profile pic", Toast.LENGTH_LONG).show();
+                            }
+                        }
+
+                }
+
                 }
                 return false;
             }
         });
 
+
          mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
         mEmailSignUpButton = (Button) findViewById(R.id.email_sign_up_button);
+        mUserImage=(ImageView)findViewById(R.id.person_image);
+        mUserDescription=(TextView)findViewById(R.id.person_description);
 
         count=0;
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
 
-                if(count==0) {
-                    alertLayout.setVisibility(View.VISIBLE);
-                    count++;
-                }else {
-                    if (cameraFileName.length() > 0) {
+                if (((Button) view).getText().toString().equals(getResources().getString(R.string.action_sign_in)))
 
+                        attemptLogin();
 
-                        if (((Button) view).getText().toString().equals(getResources().getString(R.string.action_sign_in)))
-                            attemptLogin();
-                        else
-                            attemptSignup();
+                else {
+                    if (count == 0) {
+                        alertLayout.setVisibility(View.VISIBLE);
+                        mUserTopLayout.setVisibility(View.GONE);
+                        count++;
                     } else {
-                        Toast.makeText(LoginActivity.this, "Please select a profile pic", Toast.LENGTH_LONG).show();
+                        if (cameraFileName.length() > 0) {
+                            new CheckEmail().execute();
+                        } else {
+                            Toast.makeText(LoginActivity.this, "Please select a profile pic", Toast.LENGTH_LONG).show();
+                        }
                     }
                 }
             }
@@ -198,7 +248,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
         if (resultCode == Activity.RESULT_OK) {
-            if (requestCode == CAMERA_REQUEST || requestCode == CHOICE_AVATAR_FROM_GALLERY) {
+            if (requestCode == CAMERA_REQUEST || requestCode == CHOICE_AVATAR_FROM_GALLERY || requestCode==CHOICE_AVATAR_FROM_CAMERA_CROP) {
 
                 Bitmap avatar = getBitmapFromData(data);
 
@@ -216,23 +266,53 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
                         cameraFileName = cursor.getString(column_index_data);
 
-
+                        goToCrop();
                     }
                 }
+                    else if(requestCode==CHOICE_AVATAR_FROM_GALLERY){
+
+                        handleGalleryResult(data);
+                    goToCrop();
+                    }else if(requestCode==CHOICE_AVATAR_FROM_CAMERA_CROP){
+
+
+                    Bitmap cropped_bitmap=getBitmapFromData(data);
+                    mUserImage.setImageBitmap(cropped_bitmap);
+                    Uri tempUri = getImageUri(getApplicationContext(), cropped_bitmap);
+
+                    // CALL THIS METHOD TO GET THE ACTUAL PATH
+                    cameraFileName=(getRealPathFromURI(tempUri));
+
+                    System.out.println("pathh"+cameraFileName);
+
+
+
+                }
+
                 // this bitmap is the finish image
 
-                Intent intent = new Intent("com.android.camera.action.CROP");
-                Uri uri = Uri.fromFile(new File(cameraFileName));
-                intent.setDataAndType(uri, "image/*");
-                startActivityForResult(getCropIntent(intent), CAMERA_REQUEST);
+            }else{
+                Session.getActiveSession().onActivityResult(LoginActivity.this, requestCode, resultCode, data);
+                uiHelper.onActivityResult(requestCode, resultCode, data);
             }
         }
         super.onActivityResult(requestCode, resultCode, data);
-        Session.getActiveSession().onActivityResult(LoginActivity.this, requestCode, resultCode, data);
-        uiHelper.onActivityResult(requestCode, resultCode, data);
+
 
     }
+    public Uri getImageUri(Context inContext, Bitmap inImage) {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+        String path = MediaStore.Images.Media.insertImage(inContext.getContentResolver(), inImage, "Title", null);
+        return Uri.parse(path);
+    }
 
+    public String getRealPathFromURI(Uri uri) {
+        Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+        cursor.moveToFirst();
+        int idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
+        return cursor.getString(idx);
+    }
     @Override
     public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
         super.onSaveInstanceState(outState, outPersistentState);
@@ -240,6 +320,24 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         Session.saveSession(session, outState);
     }
 
+    /**
+     * GO TO CROP INTENT
+     *
+     */
+
+    public void goToCrop(){
+
+        if (!writeStorageRequest()) {
+            return;
+        } if (!readStorageRequest()) {
+            return;
+        }
+
+        Intent intent = new Intent("com.android.camera.action.CROP");
+        Uri uri = Uri.fromFile(new File(cameraFileName));
+        intent.setDataAndType(uri, "image/*");
+        startActivityForResult(getCropIntent(intent), CHOICE_AVATAR_FROM_CAMERA_CROP);
+    }
     public void Onsignup(View view){
 
         mUserName.setVisibility(View.VISIBLE);
@@ -308,101 +406,101 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
 
 
+
+
     /**
-     * Attempts to sign in or register the account specified by the login form.
-     * If there are form errors (invalid email, missing fields, etc.), the
-     * errors are presented and no actual login attempt is made.
-     */
-    private void attemptLogin() {
-        if (mAuthTask != null) {
-            return;
-        }
-
-        // Reset errors.
-        mEmailView.setError(null);
-        mPasswordView.setError(null);
-
-        // Store values at the time of the login attempt.
-       final String email = mEmailView.getText().toString();
-        final String password = mPasswordView.getText().toString();
-
-        boolean cancel = false;
-        View focusView = null;
-
-        // Check for a valid password, if the user entered one.
-        if (!TextUtils.isEmpty(password) && !isPasswordValid(password)) {
-            mPasswordView.setError(getString(R.string.error_invalid_password));
-            focusView = mPasswordView;
-            cancel = true;
-        }
-
-        // Check for a valid email address.
-        if (TextUtils.isEmpty(email)) {
-            mEmailView.setError(getString(R.string.error_field_required));
-            focusView = mEmailView;
-            cancel = true;
-        } else if (!isEmailValid(email)) {
-            mEmailView.setError(getString(R.string.error_invalid_email));
-            focusView = mEmailView;
-            cancel = true;
-        }
-
-        if (cancel) {
-            // There was an error; don't attempt login and focus the first
-            // form field with an error.
-            focusView.requestFocus();
-        } else {
-            // Show a progress spinner, and kick off a background task to
-            // perform the user login attempt.
-            showProgress(true);
-            final QBUser user = new QBUser();
-
-
-
-
-            user.setEmail(email);
-            user.setPassword(password);
-
-            ChatService.initIfNeed(this);
-
-            ChatService.getInstance().login(user, new QBEntityCallbackImpl() {
-
-                @Override
-                public void onSuccess() {
-                    // Go to Dialogs screen
-                    //
-                    Intent intent = new Intent(LoginActivity.this, DialogsActivity.class);
-                    startActivity(intent);
-                    PreferencesUtils.saveData("newuser", "0", LoginActivity.this);
-                    finish();
-                    Log.e("login success", "login success");
-                    saveUser(email, password);
-                }
-
-                @Override
-                public void onError(List errors) {
-                    AlertDialog.Builder dialog = new AlertDialog.Builder(LoginActivity.this);
-                    dialog.setMessage("chat login errors: " + errors.toString()).create().show();
-
-                }
-            });
-//            mAuthTask = new UserLoginTask(email, password);
-//            mAuthTask.execute((Void) null);
-        }
-    }
-
-    /*
     method for new user signup
      */
 
 
+
+    public  class QbSignup extends AsyncTask<String,String,QBUser>{
+
+        String username,password,email,phone;
+        Context context;
+        String imgurl="";
+
+
+        public QbSignup(String usernam,String pwd,String emaill,String phones,Context cntxt) {
+
+            username=usernam;
+            password=pwd;
+            email=emaill;
+            phone=phones;
+            context=cntxt;
+
+
+        }
+        @Override
+        protected QBUser doInBackground(String... strings) {
+
+
+
+
+                    final QBUser newUser = new QBUser(username, password);
+
+                    newUser.setEmail(email);
+                    newUser.setFullName(username);
+                    newUser.setPhone(phone);
+                     newUser.setOldPassword(password);
+
+                    StringifyArrayList<String> tags = new StringifyArrayList<String>();
+                    tags.add("android");
+
+                    newUser.setTags(tags);
+
+                    try {
+
+                        QBUser user;
+                        QBAuth.createSession();
+
+
+                        user = QBUsers.signUpSignInTask(newUser);
+                        if (null != cameraFileName) {
+                            QBFile qbFile = QBContent.uploadFileTask(new File(cameraFileName), true, (String) null);
+                            System.out.println("uploaded" + qbFile.getPublicUrl());
+                           imgurl=qbFile.getPublicUrl();
+
+                        }
+
+
+
+
+
+                        String token = QBAuth.getBaseService().getToken();
+
+                        ApplicationSingleton.saveChatUser(user, token, context);
+
+
+
+
+                    }catch(QBResponseException e) {
+                        e.printStackTrace();
+                    }catch(BaseServiceException e) {
+                        e.printStackTrace();
+                    }
+
+
+
+
+            return newUser;
+        }
+
+        @Override
+        protected void onPostExecute(QBUser s) {
+            super.onPostExecute(s);
+            if(imgurl.length()>1)
+                new UpdateUser(s,imgurl,password).execute();
+
+        }
+    }
     public void attemptSignup(){
 
         boolean cancel = false;
         View focusView = null;
 
         // Store values at the time of the login attempt.
-       final String email = mEmailView.getText().toString();
+        final String email = mEmailView.getText().toString();
         final String password = mPasswordView.getText().toString();
         String phone = mPhone.getText().toString();
         String username = mUserName.getText().toString();
@@ -447,68 +545,297 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
+        }
+            new QbSignup(username,password,email,phone,LoginActivity.this).execute();
+    }
 
-            final QBUser user = new QBUser(username, password);
+    /**
+     * user signin
 
-            user.setEmail(email);
-            user.setFullName(username);
-            user.setPhone(phone);
-            StringifyArrayList<String> tags = new StringifyArrayList<String>();
-            tags.add("car");
-            tags.add("man");
-            user.setTags(tags);
-
-            QBAuth.createSession(new QBEntityCallback<QBSession>() {
-                @Override
-                public void onSuccess(QBSession qbSession, Bundle bundle) {
-                    QBUsers.signUp(user, new QBEntityCallbackImpl<QBUser>() {
-                        @Override
-                        public void onSuccess(QBUser user, Bundle args) {
-
-                            PreferencesUtils.saveData("newuser", "0", LoginActivity.this);
-                            saveUser(email,password);
-
-                            Intent intent = new Intent(LoginActivity.this, PickContact.class);
-                            startActivity(intent);
-
-                            finish();
+     */
 
 
+    /**
+     * Attempts to sign in or register the account specified by the login form.
+     * If there are form errors (invalid email, missing fields, etc.), the
+     * errors are presented and no actual login attempt is made.
+     */
+    private void attemptLogin() {
+        if (mAuthTask != null) {
+            return;
+        }
 
-                        }
+        // Reset errors.
+        mEmailView.setError(null);
+        mPasswordView.setError(null);
 
-                        @Override
-                        public void onError(List errors) {
-                            AlertDialog.Builder dialog = new AlertDialog.Builder(LoginActivity.this);
-                            dialog.setMessage("chat register errors: " + errors.toString()).create().show();
+        // Store values at the time of the login attempt.
+        final String email = mEmailView.getText().toString();
+        final String password = mPasswordView.getText().toString();
 
-                        }
-                    });
-                }
+        boolean cancel = false;
+        View focusView = null;
 
-                @Override
-                public void onSuccess() {
+        // Check for a valid password, if the user entered one.
+        if (!TextUtils.isEmpty(password) && !isPasswordValid(password)) {
+            mPasswordView.setError(getString(R.string.error_invalid_password));
+            focusView = mPasswordView;
+            cancel = true;
+        }
 
-                }
+        // Check for a valid email address.
+        if (TextUtils.isEmpty(email)) {
+            mEmailView.setError(getString(R.string.error_field_required));
+            focusView = mEmailView;
+            cancel = true;
+        } else if (!isEmailValid(email)) {
+            mEmailView.setError(getString(R.string.error_invalid_email));
+            focusView = mEmailView;
+            cancel = true;
+        }
 
-                @Override
-                public void onError(List<String> list) {
+        if (cancel) {
+            // There was an error; don't attempt login and focus the first
+            // form field with an error.
+            focusView.requestFocus();
+        } else {
+            // Show a progress spinner, and kick off a background task to
+            // perform the user login attempt.
+            showProgress(true);
 
-                    AlertDialog.Builder dialog = new AlertDialog.Builder(LoginActivity.this);
-                    dialog.setMessage("token register errors: ").create().show();
-                }
+            new QbSignin(password,email).execute();
 
 
-            });
+
+
+//            mAuthTask = new UserLoginTask(email, password);
+//            mAuthTask.execute((Void) null);
+        }
+    }
+    public  class QbSignin extends AsyncTask<String,String,Boolean>{
+
+
+        String email,password;
+       String message;
+        public QbSignin(String pwd,String emaill) {
+
+
+            password=pwd;
+            email=emaill;
+
 
 
         }
+        @Override
+        protected Boolean doInBackground(String... strings) {
 
+
+            final QBUser inputUser = new QBUser();
+
+
+
+
+            inputUser.setEmail(email);
+            inputUser.setPassword(password);
+
+
+            try {
+                QBUser user;
+
+                QBAuth.createSession();
+
+                String password = inputUser.getPassword();
+                user = QBUsers.signIn(inputUser);
+
+                String token = QBAuth.getBaseService().getToken();
+
+                user.setPassword(password);
+
+                JSONObject obj=new JSONObject();
+
+                obj.put("device_os","android");
+                obj.put("gcm_reg_token","android");
+                TelephonyManager tm = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
+                String countryCode = tm.getSimCountryIso();
+                if(countryCode.length()>0)
+                    obj.put("country_code",countryCode);
+                else
+                obj.put("country_code",LoginActivity.this.getResources().getConfiguration().locale.getCountry());
+                obj.put("device_id", android.provider.Settings.Secure.getString(LoginActivity.this.getContentResolver(),
+                        android.provider.Settings.Secure.ANDROID_ID));
+                obj.put("latitude",ApplicationSingleton.LOCATION_ARRAY[0]);
+                obj.put("longitude",ApplicationSingleton.LOCATION_ARRAY[1]);
+                obj.put("street", ApplicationSingleton.USER_STREET);
+                obj.put("user_id",user.getId());
+                System.out.println("passing"+obj.toString());
+                String result=Connecttoget.callJsonWithparams(Urls.USER_UPDATE, obj.toString());
+
+                if(new JSONObject(result).getString("status").equals("1"))
+
+                    return true;
+                else
+                    message=new JSONObject(result).getString("message");
+            }catch(QBResponseException e) {
+                e.printStackTrace();
+            }catch(BaseServiceException e) {
+                e.printStackTrace();
+            }catch(JSONException e) {
+                e.printStackTrace();
+            }
+
+
+            return false;
+        }
+        @Override
+        protected void onPostExecute(Boolean s) {
+            super.onPostExecute(s);
+            if(s) {
+                saveUser( email, password);
+                Intent intent = new Intent(LoginActivity.this, DialogsActivity.class);
+                startActivity(intent);
+            }else{
+
+                ApplicationSingleton.ShowAlert(LoginActivity.this,message);
+            }
+        }
+    }
+/**
+  update user with description and avatar image in quickblox along with signup update to TI server
+ */
+    public  class UpdateUser extends AsyncTask<String,String,Boolean>{
+
+        QBUser user;
+        String imgurl;
+        String psswrd;
+    String message;
+
+        public UpdateUser(QBUser usr,String img,String pswd){
+
+            user=usr;
+            imgurl=img;
+            psswrd=pswd;
+
+        }
+
+        @Override
+        protected Boolean doInBackground(String... strings) {
+
+            try {
+
+                JSONObject obj=new JSONObject();
+                obj.put("profile_pic",imgurl);
+                obj.put("user_info", mUserDescription.getText().toString());
+                user.setCustomData(obj.toString());
+
+                QBUsers.updateUser(user);
+                user.setPassword(psswrd);
+
+                obj.put("name", user.getFullName());
+                obj.put("email",user.getEmail());
+                obj.put("password",MessageDigest.getInstance("MD5").digest(user.getPassword().getBytes()));
+                obj.put("mobile_no",user.getPhone());
+                obj.put("chat_id",user.getId());
+                obj.put("device_os","android");
+                obj.put("gcm_reg_token","android");
+                obj.put("country_code",LoginActivity.this.getResources().getConfiguration().locale.getCountry());
+                obj.put("device_id", android.provider.Settings.Secure.getString(LoginActivity.this.getContentResolver(),
+                        android.provider.Settings.Secure.ANDROID_ID));
+                obj.put("latitude",ApplicationSingleton.LOCATION_ARRAY[0]);
+                obj.put("longitude",ApplicationSingleton.LOCATION_ARRAY[1]);
+                obj.put("street", ApplicationSingleton.USER_STREET);
+                TelephonyManager tm = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
+                String countryCode = tm.getSimCountryIso();
+                if(countryCode.length()>0)
+                    obj.put("country_code",countryCode);
+                else
+                    obj.put("country_code",LoginActivity.this.getResources().getConfiguration().locale.getCountry());
+
+
+                String result=Connecttoget.callJsonWithparams(Urls.USER_SIGNUP, obj.toString());
+
+                if(new JSONObject(result).getString("status").equals("1"))
+
+                    return true;
+                else
+                    message=new JSONObject(result).getString("message");
+
+            }catch(QBResponseException e){
+
+                e.printStackTrace();
+            }catch(JSONException e){
+
+                e.printStackTrace();
+            }catch(NoSuchAlgorithmException e){
+
+                e.printStackTrace();
+            }
+
+            return false;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean s) {
+            super.onPostExecute(s);
+            if(s) {
+                saveUser( user.getEmail(), psswrd);
+                Intent intent = new Intent(LoginActivity.this, PickContact.class);
+                startActivity(intent);
+            }else{
+
+                ApplicationSingleton.ShowAlert(LoginActivity.this,message);
+            }
+        }
     }
 
-    /*
-    saves loggedin user data
+    /**
+     * check email exists or not
      */
+
+    public  class CheckEmail extends AsyncTask<String,String,Boolean>{
+
+
+        @Override
+        protected Boolean doInBackground(String... strings) {
+
+
+            try{
+                JSONObject obj=new JSONObject();
+                obj.put("email",mEmailView.getText().toString());
+            String result=Connecttoget.callJsonWithparams(Urls.USER_email_check, obj.toString());
+
+                if(new JSONObject(result).getString("status").equals("1")) {
+                    if (new JSONObject(result).getString("new_user").equals("1"))
+
+                        return true;
+                }
+
+        }catch(JSONException e){
+
+            e.printStackTrace();
+        }
+
+        return false;
+        }
+        @Override
+        protected void onPostExecute(Boolean s) {
+            super.onPostExecute(s);
+            if(s) {
+
+                attemptSignup();
+            }else{
+
+                mEmailView.setError("emailid already exists");
+
+
+            }
+        }
+    }
+    /**
+    saves loggedin user data
+     * @param email
+     * @param password
+     */
+
     private void saveUser(String email,String password){
 
         PreferencesUtils.saveData("username", email, LoginActivity.this);
@@ -783,10 +1110,62 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
 
 
-    // get image for upload and crop
+    /**
+     *   seek image storage permissions
+     */
+
+    private boolean readStorageRequest() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return true;
+        }
+        if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+            return true;
+        }
+        if (shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE)) {
+            Snackbar.make(mEmailView, R.string.permission_rationale, Snackbar.LENGTH_INDEFINITE)
+                    .setAction(android.R.string.ok, new OnClickListener() {
+                        @Override
+                        @TargetApi(Build.VERSION_CODES.M)
+                        public void onClick(View v) {
+                            requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_READ_EXTERNAL_STORAGE);
+                        }
+                    });
+        } else {
+            requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_READ_EXTERNAL_STORAGE);
+        }
+        return false;
+    }
+    private boolean writeStorageRequest() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return true;
+        }
+        if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+            return true;
+        }
+        if (shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+            Snackbar.make(mEmailView, R.string.permission_rationale, Snackbar.LENGTH_INDEFINITE)
+                    .setAction(android.R.string.ok, new OnClickListener() {
+                        @Override
+                        @TargetApi(Build.VERSION_CODES.M)
+                        public void onClick(View v) {
+                            requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_WRITE_EXTERNAL_STORAGE);
+                        }
+                    });
+        } else {
+            requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_WRITE_EXTERNAL_STORAGE);
+        }
+        return false;
+    }
+
+    /**
+     *   get image for upload and crop
+      */
 
     public void ChooseFromGallery(){
 
+        if (!readStorageRequest()) {
+            return;
+        }
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("image/*");
@@ -794,6 +1173,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     }
 
     private Intent getCropIntent(Intent intent) {
+
+
         intent.putExtra("crop", "true");
         intent.putExtra("aspectX", 1);
         intent.putExtra("aspectY", 1);
@@ -803,6 +1184,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         return intent;
     }
     public void ChooseFromCamera(){
+        if (!writeStorageRequest()) {
+            return;
+        }
 
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
@@ -835,20 +1219,19 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private void handleGalleryResult(Intent data)
     {
         Uri selectedImage = data.getData();
-        mTmpGalleryPicturePath = getPath(selectedImage);
-        if(mTmpGalleryPicturePath!=null)
-            ImageUtils.setPictureOnScreen(mTmpGalleryPicturePath, mImageView);
-        else
-        {
+        cameraFileName = getPath(selectedImage);
+        if(cameraFileName==null)
+
+
             try {
                 InputStream is = getContentResolver().openInputStream(selectedImage);
-                mImageView.setImageBitmap(BitmapFactory.decodeStream(is));
-                mTmpGalleryPicturePath = selectedImage.getPath();
+
+                cameraFileName = selectedImage.getPath();
             } catch (FileNotFoundException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
-        }
+
     }
 
     @SuppressLint("NewApi")
@@ -890,5 +1273,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         }
         return path;
     }
+
+
+
+
 }
 

@@ -31,4 +31,8 @@
 
     <!-- facebook appid !-->
     <string name="app_id">1535740343360522</string>
+    <string name="title_activity_user__profile">User_Profile</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

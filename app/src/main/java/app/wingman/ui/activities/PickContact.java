@@ -1,7 +1,13 @@
 package app.wingman.ui.activities;
 
+import android.Manifest;
+import android.annotation.TargetApi;
+import android.app.AlertDialog;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -14,24 +20,42 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
+import com.quickblox.auth.QBAuth;
+import com.quickblox.auth.model.QBSession;
+import com.quickblox.chat.utils.Utils;
+import com.quickblox.content.QBContent;
+import com.quickblox.content.model.QBFile;
 import com.quickblox.core.Consts;
+import com.quickblox.core.QBEntityCallback;
 import com.quickblox.core.QBEntityCallbackImpl;
+import com.quickblox.core.QBProgressCallback;
 import com.quickblox.core.request.QBPagedRequestBuilder;
+import com.quickblox.location.QBLocations;
+import com.quickblox.location.model.QBLocation;
 import com.quickblox.users.QBUsers;
 import com.quickblox.users.model.QBUser;
+import com.quickblox.users.result.QBUserResult;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import app.wingman.ApplicationSingleton;
 import app.wingman.R;
 import app.wingman.adapter.ContactsAdapter;
+import app.wingman.core.ChatService;
 import app.wingman.interfaces.ContactsQuery;
+import app.wingman.utils.GetMyLocation;
 import app.wingman.utils.PreferencesUtils;
 
-public class PickContact extends AppCompatActivity implements
+public class PickContact  extends app.wingman.ui.activities.BaseActivity implements QBEntityCallback<ArrayList<QBUser>>,
         LoaderManager.LoaderCallbacks<Cursor>,AdapterView.OnItemClickListener {
 
     ContactsAdapter mAdapter;
@@ -58,6 +82,8 @@ public class PickContact extends AppCompatActivity implements
 
          mAdapter = new ContactsAdapter(PickContact.this);
            contactlist = (ListView) findViewById(R.id.lstcontacts);
+
+
 
     }
 
@@ -120,6 +146,9 @@ public class PickContact extends AppCompatActivity implements
 
             contactlist.setAdapter(mAdapter);
             contactlist.setOnItemClickListener(PickContact.this);
+
+
+
 
 
 
@@ -200,4 +229,63 @@ public class PickContact extends AppCompatActivity implements
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
 
     }
+
+    /**
+     * add location
+     */
+public void addLocation(){
+
+    if(isSessionActive()){
+
+
+
+
+        GetMyLocation obj=new GetMyLocation(getApplicationContext());
+        obj.getMyLocation();
+
+        //updateUserProfile();
+
+
+    }
+
+
+   
+}
+
+    @Override
+    public void onSuccess(ArrayList<QBUser> qbUsers, Bundle bundle) {
+
+        System.out.println("size"+qbUsers.size());
+    }
+
+    @Override
+    public void onSuccess() {
+
+    }
+
+    @Override
+    public void onError(List<String> list) {
+
+    }
+    @Override
+    public void onStartSessionRecreation() {
+
+    }
+
+    @Override
+    public void onFinishSessionRecreation(final boolean success) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (success) {
+
+                    addLocation();
+                }
+            }
+        });
+    }
+
+
+
+
 }
