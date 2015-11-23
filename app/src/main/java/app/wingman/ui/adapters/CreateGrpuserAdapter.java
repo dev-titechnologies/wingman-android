@@ -1,41 +1,38 @@
 /**
  * 
  */
-package app.wingman.adapter;
-
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+package app.wingman.ui.adapters;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.Contacts;
 import android.support.v4.widget.CursorAdapter;
 import android.text.style.TextAppearanceSpan;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.SectionIndexer;
 import android.widget.TextView;
 
-import com.quickblox.core.QBEntityCallbackImpl;
-import com.quickblox.core.request.QBPagedRequestBuilder;
-import com.quickblox.users.QBUsers;
 import com.quickblox.users.model.QBUser;
+
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import app.wingman.ApplicationSingleton;
 import app.wingman.R;
 import app.wingman.interfaces.ContactsQuery;
-import app.wingman.ui.activities.PickContact;
+import app.wingman.ui.activities.CreateGroup;
 import app.wingman.utils.Roundedimageview;
 
 
@@ -43,23 +40,25 @@ import app.wingman.utils.Roundedimageview;
  * @author titech
  *
  */
-public class ContactsAdapter extends CursorAdapter implements SectionIndexer{
+public class CreateGrpuserAdapter extends CursorAdapter implements SectionIndexer{
     private LayoutInflater mInflater; // Stores the layout inflater
   //  private AlphabetIndexer mAlphabetIndexer; // Stores the AlphabetIndexer instance
     private TextAppearanceSpan highlightTextSpan; // Stores the highlight text appearance style
     public static String displayName,phone;
     //String  email="";
+    private List<QBUser> selected = new ArrayList<QBUser>();
 
-
-    
+    public List<QBUser> getSelected() {
+        return selected;
+    }
     public static abstract class Row {}
-	
+
     private String mSections = "#ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     /**
      * Instantiates a new Contacts Adapter.
      * @param context A context that has access to the app's layout.
      */
-    public ContactsAdapter(Context context) {
+    public CreateGrpuserAdapter(Context context) {
         super(context, null, 0);
 
         // Stores inflater for use later
@@ -111,51 +110,33 @@ public class ContactsAdapter extends CursorAdapter implements SectionIndexer{
     public View newView(final Context context, final Cursor cursor, ViewGroup viewGroup) {
         // Inflates the list item layout.
         final View itemLayout =
-                mInflater.inflate(R.layout.contact_row_item, viewGroup, false);
-        
+                mInflater.inflate(R.layout.user_row_item, viewGroup, false);
 
-        // Creates a new ViewHolder in which to store handles to each view resource. This
-        // allows bindView() to retrieve stored references instead of calling findViewById for
-        // each instance of the layout.
-        final ViewHolder holder = new ViewHolder();
-        holder.text1 = (TextView) itemLayout.findViewById(R.id.cntctperson_name);
-        holder.text2 = (TextView) itemLayout.findViewById(R.id.cntctemail);
-        holder.invite = (Button) itemLayout.findViewById(R.id.invite);
-        holder.icon = (ImageView) itemLayout.findViewById(R.id.person_photo);
-        
-        
 
-        // Stores the resourceHolder instance in itemLayout. This makes resourceHolder
-        // available to bindView and other methods that receive a handle to the item view.
-        itemLayout.setTag(holder);
-        itemLayout.setTag(R.id.cntctperson_name, holder.text1);
-        itemLayout.setTag(R.id.cntctemail, holder.text2);
-        itemLayout.setTag(R.id.invite, holder.invite);
-        itemLayout.setTag(R.id.person_photo, holder.icon);
-    	
-        final int position=cursor.getPosition();
+            // Creates a new ViewHolder in which to store handles to each view resource. This
+            // allows bindView() to retrieve stored references instead of calling findViewById for
+            // each instance of the layout.
+            final ViewHolder holder = new ViewHolder();
+            holder.text1 = (TextView) itemLayout.findViewById(R.id.cntctperson_name);
+            holder.text2 = (TextView) itemLayout.findViewById(R.id.cntctemail);
 
-//        // Returns the item layout view
-//        itemLayout.setOnClickListener(new OnClickListener() {
-//			
-//			@Override
-//			public void onClick(View arg0) {
-//				// TODO Auto-generated method stub
-//				Phonebook phd=new Phonebook();
-//				if(holder.selection.isChecked()){
-//					
-//					holder.selection.setChecked(false);
-//				}
-//				else{
-//			
-//					holder.selection.setChecked(false);
-//				
-//					 
-//				}
-//				
-//			}
-//		});
-        return itemLayout;
+            holder.icon = (ImageView) itemLayout.findViewById(R.id.person_photo);
+            holder.invitecb = (CheckBox) itemLayout.findViewById(R.id.invite);
+
+
+            // Stores the resourceHolder instance in itemLayout. This makes resourceHolder
+            // available to bindView and other methods that receive a handle to the item view.
+            itemLayout.setTag(holder);
+            itemLayout.setTag(R.id.cntctperson_name, holder.text1);
+            itemLayout.setTag(R.id.cntctemail, holder.text2);
+            itemLayout.setTag(R.id.invite, holder.invitecb);
+            itemLayout.setTag(R.id.person_photo, holder.icon);
+
+            final int position = cursor.getPosition();
+
+
+            return itemLayout;
+
     }
 
     /**
@@ -175,9 +156,33 @@ public class ContactsAdapter extends CursorAdapter implements SectionIndexer{
         holder.icon.setTag(cursor.getPosition());
 
         displayName = cursor.getString(ContactsQuery.DISPLAY_NAME);
-        phone = (cursor.getString(ContactsQuery.PHONE)).trim().replaceAll("\\s+", "").replaceAll("-", "");
+
+        holder. invitecb.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View buttonView) {
+
+                    Log.e("checking", "phones " + CreateGroup.phones.indexOf
+                            (buttonView.getTag().toString()));
+                    Log.e("checking", "phonescheck " + CreateGroup.userslist.size());
+                    Log.e("checked", CreateGroup.userslist.get(CreateGroup.phones.indexOf
+                            (buttonView.getTag().toString())).getId().toString());
 
 
+
+                        if ((((CheckBox) buttonView).isChecked())) {
+                            selected.add(CreateGroup.userslist.get(CreateGroup.phones.indexOf
+                                    (buttonView.getTag().toString())));
+                        } else {
+                            selected.remove(CreateGroup.userslist.get(CreateGroup.phones.indexOf
+                                    (buttonView.getTag().toString())));
+                        }
+                    Log.e("selected", selected.toString());
+
+            }
+        });
+        phone = (cursor.getString(ContactsQuery.PHONE)).trim().replaceAll("\\s+", "").replaceAll("-", "").replaceAll("\\(","").replaceAll("\\)","");
+        holder. invitecb.setTag(phone);
+//        Log.e("current","phonescheck "+phone);
             holder.text1.setText(displayName);
             if (phone.trim().length() > 0)
                 holder.text2.setText(phone);
@@ -226,14 +231,17 @@ public class ContactsAdapter extends CursorAdapter implements SectionIndexer{
                 holder.icon.setImageBitmap(Roundedimageview.getCroppedBitmap(bm, bm.getWidth() - 20));
             }
 
-        if (PickContact.phones.contains(phone)) {
+        if (CreateGroup.phones.contains(phone)) {
 
-            System.out.println("phone is there"+" "+PickContact.phones+" real "+phone);
-            holder.invite.setTag((R.string.emailtag), phone);
-            holder.invite.setText(context.getResources().getString(R.string.action_add));
+            System.out.println("phone is there"+" "+CreateGroup.phones+" real "+phone);
+            holder.invitecb.setTag((R.string.emailtag), phone);
+            holder.invitecb.setText(context.getResources().getString(R.string.action_add));
 
         } else {
-            holder.invite.setText(context.getResources().getString(R.string.action_invite));
+
+//            holder.invitecb.
+            holder.invitecb.setText(context.getResources().getString(R.string.action_invite));
+//            holder.invitecb.setVisibility(View.INVISIBLE);
         }
 
 //            try{
@@ -349,8 +357,8 @@ public class ContactsAdapter extends CursorAdapter implements SectionIndexer{
         TextView text1;
         TextView text2;
         ImageView icon;
+CheckBox invitecb;
 
-        Button invite;
     }
     
  

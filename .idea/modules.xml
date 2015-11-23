@@ -5,7 +5,7 @@
       <module fileurl="file://$PROJECT_DIR$/FacebookSDK/FacebookSDK.iml" filepath="$PROJECT_DIR$/FacebookSDK/FacebookSDK.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/pull-to-refresh/pull-to-refresh.iml" filepath="$PROJECT_DIR$/pull-to-refresh/pull-to-refresh.iml" />
-      <module fileurl="file://$PROJECT_DIR$/testqb.iml" filepath="$PROJECT_DIR$/testqb.iml" />
+      <module fileurl="file://$PROJECT_DIR$/wingman-android.iml" filepath="$PROJECT_DIR$/wingman-android.iml" />
     </modules>
   </component>
 </project>

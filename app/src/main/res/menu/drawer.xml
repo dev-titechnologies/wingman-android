@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+
+        <item
+            android:id="@+id/Connect"
+            android:checked="false"
+            android:icon="@drawable/ic_action_new"
+            android:title="@string/Connect" />
+
+        <item
+            android:id="@+id/Request"
+            android:checked="false"
+            android:icon="@drawable/ic_action_new"
+            android:title="@string/Request" />
+
+        <item
+            android:id="@+id/Groups"
+            android:checked="false"
+            android:icon="@drawable/ic_action_new"
+            android:title="@string/Groups" />
+
+        <item
+            android:id="@+id/Messages"
+            android:checked="false"
+            android:icon="@drawable/ic_action_new"
+            android:title="@string/Messages" />
+
+
+        <item
+            android:id="@+id/CreateGroup"
+            android:checked="false"
+            android:icon="@drawable/ic_action_new"
+            android:title="@string/CreateGroup" />
+
+
+    </group>
+</menu>

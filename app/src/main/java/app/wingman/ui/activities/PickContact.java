@@ -1,16 +1,14 @@
 package app.wingman.ui.activities;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -24,10 +22,9 @@ import com.quickblox.users.model.QBUser;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import app.wingman.R;
-import app.wingman.adapter.ContactsAdapter;
+import app.wingman.ui.adapters.ContactsAdapter;
 import app.wingman.interfaces.ContactsQuery;
 import app.wingman.utils.PreferencesUtils;
 
@@ -41,7 +38,7 @@ public class PickContact extends AppCompatActivity implements
     private HashMap<String, Integer> sections = new HashMap<String, Integer>();
 
     public static ArrayList<String> phones = new ArrayList<String>();
-    ArrayList<QBUser> userslist=new ArrayList<QBUser>();
+    public static ArrayList<QBUser> userslist=new ArrayList<QBUser>();
     int pageCount=0;
 
 
@@ -51,9 +48,16 @@ public class PickContact extends AppCompatActivity implements
         setContentView(R.layout.activity_pick_contact);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setVisibility(View.GONE);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(getApplicationContext(),DialogsActivity.class);
+                startActivity(i);
+                finish();
+            }
+        });
         retrieveAllUsersFromPage(1);
 
          mAdapter = new ContactsAdapter(PickContact.this);
@@ -63,7 +67,8 @@ public class PickContact extends AppCompatActivity implements
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        if (id == ContactsQuery.QUERY_ID) {
+        if (id == ContactsQuery.QUERY_ID)
+        {
             Uri contentUri;
 
 

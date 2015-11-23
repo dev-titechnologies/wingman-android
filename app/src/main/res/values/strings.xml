@@ -31,4 +31,17 @@
 
     <!-- facebook appid !-->
     <string name="app_id">1535740343360522</string>
+
+    <string name="closeDrawer">Navigation View</string>
+    <string name="openDrawer">Navigation View Closed</string>
+
+    <!-- side menu!-->
+    <string name="enter_group_name">Enter group name</string>
+    <string name="Connect">Connect</string>
+    <string name="Request">Request</string>
+    <string name="Groups">Groups</string>
+    <string name="Messages">Messages</string>
+    <string name="CreateGroup">Create Group</string>
+
+
 </resources>

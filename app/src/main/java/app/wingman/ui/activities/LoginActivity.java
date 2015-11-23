@@ -168,21 +168,14 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             @Override
             public void onClick(View view) {
 
-                if(count==0) {
-                    alertLayout.setVisibility(View.VISIBLE);
-                    count++;
-                }else {
-                    if (cameraFileName.length() > 0) {
 
 
                         if (((Button) view).getText().toString().equals(getResources().getString(R.string.action_sign_in)))
                             attemptLogin();
                         else
                             attemptSignup();
-                    } else {
-                        Toast.makeText(LoginActivity.this, "Please select a profile pic", Toast.LENGTH_LONG).show();
-                    }
-                }
+
+
             }
         });
 
@@ -832,24 +825,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         return photo;
     }
 
-    private void handleGalleryResult(Intent data)
-    {
-        Uri selectedImage = data.getData();
-        mTmpGalleryPicturePath = getPath(selectedImage);
-        if(mTmpGalleryPicturePath!=null)
-            ImageUtils.setPictureOnScreen(mTmpGalleryPicturePath, mImageView);
-        else
-        {
-            try {
-                InputStream is = getContentResolver().openInputStream(selectedImage);
-                mImageView.setImageBitmap(BitmapFactory.decodeStream(is));
-                mTmpGalleryPicturePath = selectedImage.getPath();
-            } catch (FileNotFoundException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        }
-    }
+
 
     @SuppressLint("NewApi")
     private String getPath(Uri uri) {
