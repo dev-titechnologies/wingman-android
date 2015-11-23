@@ -507,6 +507,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         PreferencesUtils.saveData("username", email, LoginActivity.this);
         PreferencesUtils.saveData("password", password, LoginActivity.this);
         PreferencesUtils.saveData("user logged","1",LoginActivity.this);
+
     }
     private boolean isEmailValid(String email) {
         //TODO: Replace this with your own logic

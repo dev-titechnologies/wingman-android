@@ -67,6 +67,7 @@ public class CreateGroup extends AppCompatActivity implements
     public static ArrayList<String> phones = new ArrayList<String>();
     public static ArrayList<QBUser> userslist=new ArrayList<QBUser>();
     int pageCount=0;
+    JSONObject groupapi;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -103,11 +104,28 @@ public class CreateGroup extends AppCompatActivity implements
                     QBChatService.getInstance().getGroupChatManager().createDialog(dialogToCreate, new QBEntityCallbackImpl<QBDialog>() {
                         @Override
                         public void onSuccess(QBDialog dialog, Bundle args) {
+                            groupapi = new JSONObject();
+
+                            try {
+                                groupapi.put("group_qb_id",dialog.getDialogId().toString());
+                                groupapi.put("group_name",dialog.getName().toString());
+                                groupapi.put("admin_id","");
+                                groupapi.put("tag_list",selected);
+
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+
+
                             if (mAdapter.getSelected().size() == 1) {
                                 startSingleChat(dialog);
                             } else {
                                 startGroupChat(dialog);
                             }
+
+
+
+
                         }
 
                         @Override
