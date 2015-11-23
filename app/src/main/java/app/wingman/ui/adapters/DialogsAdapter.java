@@ -81,9 +81,12 @@ public class DialogsAdapter extends BaseAdapter {
                 holder.name.setText(user.getLogin() == null ? user.getFullName() : user.getLogin());
             }
         }
-        if (dialog.getLastMessage() != null ) {
-            holder.lastMessage.setText("Sticker");
-        } else {
+
+//        if (dialog.getLastMessage() != null ) {
+//            holder.lastMessage.setText("Sticker");
+//        } else
+
+        {
             holder.lastMessage.setText(dialog.getLastMessage());
         }
         holder.groupType.setText(dialog.getType().toString());

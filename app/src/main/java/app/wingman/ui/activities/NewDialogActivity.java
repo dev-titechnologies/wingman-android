@@ -5,8 +5,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 
 import com.handmark.pulltorefresh.library.PullToRefreshBase;
@@ -43,6 +45,7 @@ public class NewDialogActivity extends app.wingman.ui.activities.BaseActivity im
 
     private PullToRefreshListView usersList;
     private Button createChatButton;
+    private EditText groupname;
     private ProgressBar progressBar;
     private app.wingman.ui.adapters.UsersAdapter usersAdapter;
 
@@ -50,6 +53,7 @@ public class NewDialogActivity extends app.wingman.ui.activities.BaseActivity im
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.dialog_new);
+        groupname = (EditText)findViewById(R.id.groupname);
 
         usersList = (PullToRefreshListView) findViewById(R.id.usersList);
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
@@ -58,36 +62,43 @@ public class NewDialogActivity extends app.wingman.ui.activities.BaseActivity im
         createChatButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (usersAdapter.getSelected().size() > 1 && groupname.getText().toString().length()>1) {
+                    app.wingman.core.ChatService.getInstance().addDialogsUsers(usersAdapter.getSelected());
 
-                app.wingman.core.ChatService.getInstance().addDialogsUsers(usersAdapter.getSelected());
+                    // Create new group dialog
+                    //
+                    QBDialog dialogToCreate = new QBDialog();
+                    dialogToCreate.setName(groupname.getText().toString());
+                    if (usersAdapter.getSelected().size() == 1) {
+                        dialogToCreate.setType(QBDialogType.PRIVATE);
+                    } else {
+                        dialogToCreate.setType(QBDialogType.GROUP);
+                    }
+                    dialogToCreate.setOccupantsIds(getUserIds(usersAdapter.getSelected()));
 
-                // Create new group dialog
-                //
-                QBDialog dialogToCreate = new QBDialog();
-                dialogToCreate.setName(usersListToChatName());
-                if (usersAdapter.getSelected().size() == 1) {
-                    dialogToCreate.setType(QBDialogType.PRIVATE);
-                } else {
-                    dialogToCreate.setType(QBDialogType.GROUP);
-                }
-                dialogToCreate.setOccupantsIds(getUserIds(usersAdapter.getSelected()));
-
-                QBChatService.getInstance().getGroupChatManager().createDialog(dialogToCreate, new QBEntityCallbackImpl<QBDialog>() {
-                    @Override
-                    public void onSuccess(QBDialog dialog, Bundle args) {
-                        if (usersAdapter.getSelected().size() == 1) {
-                            startSingleChat(dialog);
-                        } else {
-                            startGroupChat(dialog);
+                    QBChatService.getInstance().getGroupChatManager().createDialog(dialogToCreate, new QBEntityCallbackImpl<QBDialog>() {
+                        @Override
+                        public void onSuccess(QBDialog dialog, Bundle args) {
+                            if (usersAdapter.getSelected().size() == 1) {
+                                startSingleChat(dialog);
+                            } else {
+                                startGroupChat(dialog);
+                            }
                         }
-                    }
 
-                    @Override
-                    public void onError(List<String> errors) {
-                        AlertDialog.Builder dialog = new AlertDialog.Builder(NewDialogActivity.this);
-                        dialog.setMessage("dialog creation errors: " + errors).create().show();
-                    }
-                });
+                        @Override
+                        public void onError(List<String> errors) {
+                            AlertDialog.Builder dialog = new AlertDialog.Builder(NewDialogActivity.this);
+                            dialog.setMessage("dialog creation errors: " + errors).create().show();
+                        }
+                    });
+                }else{
+                    if(groupname.getText().toString().length()<1)
+                        Toast.makeText(getApplicationContext(),"Group Name Should Not Be Empty!",2000).show();
+                    else
+                    Toast.makeText(getApplicationContext(),"Select one more!",2000).show();
+                }
+
             }
         });
 

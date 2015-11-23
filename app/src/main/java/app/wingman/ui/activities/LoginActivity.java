@@ -65,15 +65,12 @@ import com.quickblox.auth.model.QBSession;
 
 import com.quickblox.content.QBContent;
 import com.quickblox.content.model.QBFile;
-import com.quickblox.core.QBEntityCallback;
-import com.quickblox.core.QBEntityCallbackImpl;
-import com.quickblox.core.QBProgressCallback;
+
 import com.quickblox.core.exception.BaseServiceException;
 import com.quickblox.core.exception.QBResponseException;
 import com.quickblox.core.helper.StringifyArrayList;
 
-import com.quickblox.location.QBLocations;
-import com.quickblox.location.model.QBLocation;
+
 import com.quickblox.users.QBUsers;
 import com.quickblox.users.model.QBUser;
 import com.quickblox.users.result.QBUserResult;
@@ -216,23 +213,14 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
             @Override
             public void onClick(View view) {
 
-                if (((Button) view).getText().toString().equals(getResources().getString(R.string.action_sign_in)))
 
-                        attemptLogin();
+                        if (((Button) view).getText().toString().equals(getResources().getString(R.string.action_sign_in)))
+                            attemptLogin();
+                        else
+                            attemptSignup();
 
-                else {
-                    if (count == 0) {
-                        alertLayout.setVisibility(View.VISIBLE);
-                        mUserTopLayout.setVisibility(View.GONE);
-                        count++;
-                    } else {
-                        if (cameraFileName.length() > 0) {
-                            new CheckEmail().execute();
-                        } else {
-                            Toast.makeText(LoginActivity.this, "Please select a profile pic", Toast.LENGTH_LONG).show();
-                        }
-                    }
-                }
+
+
             }
         });
 
@@ -1216,6 +1204,7 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
         return photo;
     }
 
+
     private void handleGalleryResult(Intent data)
     {
         Uri selectedImage = data.getData();
@@ -1233,6 +1222,7 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
             }
 
     }
+
 
     @SuppressLint("NewApi")
     private String getPath(Uri uri) {

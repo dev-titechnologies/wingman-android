@@ -77,6 +77,7 @@ public class ApplicationSingleton extends Application {
 
         // Initialise QuickBlox SDK
         //
+
         QBSettings.getInstance().fastConfigInit(APP_ID, AUTH_KEY, AUTH_SECRET);
 
     }

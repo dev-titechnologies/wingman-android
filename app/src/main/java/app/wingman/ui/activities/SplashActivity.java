@@ -14,8 +14,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.quickblox.core.QBEntityCallbackImpl;
-import com.quickblox.location.QBLocations;
-import com.quickblox.location.model.QBLocation;
+
 import com.quickblox.users.model.QBUser;
 
 import java.util.List;

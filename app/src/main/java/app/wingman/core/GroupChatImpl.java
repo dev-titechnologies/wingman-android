@@ -23,12 +23,13 @@ import java.util.List;
 
 import app.wingman.core.Chat;
 import app.wingman.ui.activities.ChatActivity;
+import app.wingman.ui.activities.DialogsActivity;
 
 public class GroupChatImpl extends QBMessageListenerImpl<QBGroupChat> implements app.wingman.core.Chat {
     private static final String TAG = GroupChatImpl.class.getSimpleName();
 
     private app.wingman.ui.activities.ChatActivity chatActivity;
-
+    private app.wingman.ui.activities.DialogsActivity dialogActivity;
     private QBGroupChatManager groupChatManager;
     private QBGroupChat groupChat;
 
@@ -101,11 +102,11 @@ public class GroupChatImpl extends QBMessageListenerImpl<QBGroupChat> implements
 
     @Override
     public void release() throws XMPPException {
-        if (groupChat != null) {
-            leave();
-
-            groupChat.removeMessageListener(this);
-        }
+//        if (groupChat != null) {
+//            leave();
+//
+//            groupChat.removeMessageListener(this);
+//        }
     }
 
     @Override
@@ -128,7 +129,9 @@ public class GroupChatImpl extends QBMessageListenerImpl<QBGroupChat> implements
     @Override
     public void processMessage(QBGroupChat groupChat, QBChatMessage chatMessage) {
         // Show message
-        Log.w(TAG, "new incoming message: " + chatMessage);
+         final List<QBChatMessage> chatMessages ;
+//DialogsActivity.showNotification();
+        Log.e(TAG, "new incoming message: " + chatMessage);
         chatActivity.showMessage(chatMessage);
     }
 

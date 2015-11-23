@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="quickblox-android-sdk-location-2.3.1">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/app/libs/quickblox-android-sdk-location-2.3.1.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

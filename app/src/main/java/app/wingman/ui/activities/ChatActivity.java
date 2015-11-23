@@ -97,11 +97,11 @@ public class ChatActivity extends app.wingman.ui.activities.BaseActivity {
 
 
         {
-            try {
-                chat.release();
-            } catch (XMPPException e) {
-                Log.e(TAG, "failed to release chat", e);
-            }
+//            try {
+//                chat.release();
+//            } catch (XMPPException e) {
+//                Log.e(TAG, "failed to release chat", e);
+//            }
             super.onBackPressed();
 
             Intent i = new Intent(ChatActivity.this, app.wingman.ui.activities.DialogsActivity.class);
@@ -229,7 +229,7 @@ public class ChatActivity extends app.wingman.ui.activities.BaseActivity {
         QBChatService.getDialogMessages(dialog, customObjectRequestBuilder, new QBEntityCallbackImpl<ArrayList<QBChatMessage>>() {
             @Override
             public void onSuccess(ArrayList<QBChatMessage> messages, Bundle args) {
-
+Log.e("chat received","chat received");
                 adapter = new app.wingman.ui.adapters.ChatAdapter(ChatActivity.this, new ArrayList<QBChatMessage>());
                 messagesContainer.setAdapter(adapter);
 

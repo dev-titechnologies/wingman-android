@@ -25,11 +25,9 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
-import android.widget.Toast;
 
-import com.quickblox.core.QBEntityCallbackImpl;
-import com.quickblox.location.QBLocations;
-import com.quickblox.location.model.QBLocation;
+
+
 
 import app.wingman.ApplicationSingleton;
 import app.wingman.ui.activities.DialogsActivity;

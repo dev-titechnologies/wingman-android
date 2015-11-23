@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:context="app.wingman.ui.activities.PickContact">
+
+    <android.support.design.widget.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/AppTheme.AppBarOverlay">
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            app:popupTheme="@style/AppTheme.PopupOverlay" />
+
+    </android.support.design.widget.AppBarLayout>
+
+    <RelativeLayout 
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+      
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        tools:context=".activities.ProductListActivityy"
+        >
+<EditText
+    android:layout_width="match_parent"
+    android:id="@+id/groupname"
+    android:layout_height="56dp" />
+<Button
+    android:layout_width="wrap_content"
+    android:text="@string/CreateGroup"
+    android:layout_below="@id/groupname"
+    android:id="@+id/creategrpButton"
+    android:layout_height="wrap_content" />
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:src="@drawable/ic_action_new"
+            android:id="@+id/tags"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/groupname"
+            android:layout_toRightOf="@+id/creategrpButton"
+            android:layout_toEndOf="@+id/creategrpButton" />
+        <ListView
+            android:id="@+id/lstcontacts"
+            android:layout_below="@id/creategrpButton"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scrollbars="vertical" />
+
+
+    </RelativeLayout>
+
+
+</android.support.design.widget.CoordinatorLayout>
