@@ -15,6 +15,7 @@ import java.util.List;
 
 import app.wingman.core.ApplicationSessionStateCallback;
 import app.wingman.core.ChatService;
+import app.wingman.utils.PreferencesUtils;
 
 /**
  * Created by igorkhomenko on 4/29/15.
@@ -59,8 +60,10 @@ public class BaseActivity extends AppCompatActivity implements app.wingman.core.
             Log.d(TAG, "Need to restore chat connection");
 
             QBUser user = new QBUser();
-            user.setLogin(savedInstanceState.getString(USER_LOGIN_KEY));
-            user.setPassword(savedInstanceState.getString(USER_PASSWORD_KEY));
+            user.setEmail(PreferencesUtils.getData("username", BaseActivity.this));
+         user.setPassword(PreferencesUtils.getData("password", BaseActivity.this));
+//            user.setLogin(savedInstanceState.getString(USER_LOGIN_KEY));
+//            user.setPassword(savedInstanceState.getString(USER_PASSWORD_KEY));
 
             savedInstanceState.remove(USER_LOGIN_KEY);
             savedInstanceState.remove(USER_PASSWORD_KEY);

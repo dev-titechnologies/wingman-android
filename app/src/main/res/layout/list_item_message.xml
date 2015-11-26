@@ -35,7 +35,10 @@
                 android:layout_height="wrap_content"
                 android:textColor="@android:color/black"
                 android:maxWidth="250dp" />
-
+            <ImageView
+                android:id="@+id/sticker_image"
+                android:layout_width="160dp"
+                android:layout_height="160dp"/>
         </LinearLayout>
 
     </LinearLayout>

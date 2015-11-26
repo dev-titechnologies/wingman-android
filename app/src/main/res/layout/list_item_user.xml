@@ -8,6 +8,7 @@
     <ImageView
         android:layout_width="80dp"
         android:layout_height="80dp"
+        android:id="@+id/userlogo"
         android:src="@drawable/ic_user"
         android:scaleType="centerCrop" />
 

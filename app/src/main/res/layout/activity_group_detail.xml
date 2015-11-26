@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+
+
+    tools:context="app.wingman.ui.activities.GroupDetail">
+    <android.support.v7.widget.Toolbar
+        android:layout_width="match_parent"
+        android:id="@+id/toolbar"
+        android:background="@color/colorPrimary"
+        android:layout_height="wrap_content">
+
+
+
+    </android.support.v7.widget.Toolbar>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerHorizontal="true"
+
+        android:layout_centerVertical="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+
+            android:orientation="vertical">
+
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:gravity="center"
+
+                android:layout_height="match_parent">
+
+                <LinearLayout
+                    android:id="@+id/leftlinear"
+
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <com.github.siyamed.shapeimageview.HexagonImageView
+                        android:layout_width="100dp"
+                        android:layout_height="100dp"
+android:id="@+id/user1"
+                        android:layout_gravity="center_horizontal"
+                        android:src="@drawable/ic_user"
+                        app:siBorderColor="#eaeaea"
+                        app:siBorderWidth="8dp" />
+
+                    <com.github.siyamed.shapeimageview.HexagonImageView
+                        android:layout_width="100dp"
+                        android:layout_height="100dp"
+                        android:id="@+id/user2"
+                        android:layout_gravity="center_horizontal"
+                        android:src="@drawable/ic_user"
+                        app:siBorderColor="#eaeaea"
+                        app:siBorderWidth="8dp" />
+
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/topmiddle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+
+                    android:layout_marginTop="-50dp"
+                    android:layout_toRightOf="@+id/leftlinear">
+
+                    <com.github.siyamed.shapeimageview.HexagonImageView
+                        android:layout_width="100dp"
+                        android:layout_height="100dp"
+                        android:id="@+id/user3"
+                        android:layout_gravity="center_horizontal"
+                        android:src="@drawable/ic_user"
+                        app:siBorderColor="#eaeaea"
+                        app:siBorderWidth="8dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:layout_toRightOf="@+id/topmiddle"
+                    android:orientation="vertical">
+
+
+                    <com.github.siyamed.shapeimageview.HexagonImageView
+                        android:layout_width="100dp"
+                        android:layout_height="100dp"
+                        android:id="@+id/user4"
+                        android:layout_gravity="center_horizontal"
+                        android:src="@drawable/ic_user"
+                        app:siBorderColor="#eaeaea"
+                        app:siBorderWidth="8dp" />
+
+                    <com.github.siyamed.shapeimageview.HexagonImageView
+                        android:layout_width="100dp"
+                        android:layout_height="100dp"
+                        android:id="@+id/user5"
+                        android:layout_gravity="center_horizontal"
+                        android:src="@drawable/ic_user"
+                        app:siBorderColor="#eaeaea"
+                        app:siBorderWidth="8dp" />
+
+                </LinearLayout>
+
+
+                <com.github.siyamed.shapeimageview.HexagonImageView
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:layout_gravity="center_horizontal"
+                    android:id="@+id/user6"
+                    android:src="@drawable/ic_user"
+                    app:siBorderColor="#eaeaea"
+                    app:siBorderWidth="8dp"
+                    android:layout_below="@+id/topmiddle"
+                    android:layout_toRightOf="@+id/leftlinear"
+                    android:layout_toEndOf="@+id/leftlinear"
+                    android:layout_marginTop="107dp" />
+            </RelativeLayout>
+
+
+        </LinearLayout>
+
+
+    </RelativeLayout>
+
+
+</RelativeLayout>

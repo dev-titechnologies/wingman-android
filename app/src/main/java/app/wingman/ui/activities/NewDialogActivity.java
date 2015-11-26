@@ -140,6 +140,7 @@ public class NewDialogActivity extends app.wingman.ui.activities.BaseActivity im
 
         // save users
         //
+
         users.addAll(newUsers);
 
         // Prepare users list for simple adapter.
@@ -190,6 +191,7 @@ public class NewDialogActivity extends app.wingman.ui.activities.BaseActivity im
     private void loadNextPage() {
         ++currentPage;
 
+        System.out.println("load next request");
         QBUsers.getUsers(getQBPagedRequestBuilder(currentPage), this);
     }
 
@@ -216,6 +218,7 @@ public class NewDialogActivity extends app.wingman.ui.activities.BaseActivity im
             @Override
             public void run() {
                 if (success) {
+                    System.out.println("load next session recreate");
                     loadNextPage();
                 }
             }

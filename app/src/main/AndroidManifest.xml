@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="app.wingman" >
+    package="app.wingman">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
@@ -26,6 +26,8 @@
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
         android:name=".ApplicationSingleton"
@@ -33,8 +35,9 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme" >
-        <activity android:name=".SplashActivity" >
+        android:theme="@style/AppTheme">
+        <activity android:name=".ui.activities.SplashActivity">
+            android:theme="@style/AppTheme" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -64,7 +67,7 @@
         -->
         <receiver
             android:name=".pushnotifications.GcmBroadcastReceiver"
-            android:permission="com.google.android.c2dm.permission.SEND" >
+            android:permission="com.google.android.c2dm.permission.SEND">
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
                 <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
@@ -96,10 +99,10 @@
             android:name="com.facebook.sdk.ApplicationId"
             android:value="@string/app_id" />
 
-        <activity android:name=".ui.activities.CreateGroup" >
-        </activity>
-        <activity android:name=".ui.activities.GroupsActivity" >
-        </activity>
+        <activity android:name=".ui.activities.CreateGroup" />
+        <activity android:name=".ui.activities.GroupsActivity" />
+        <activity android:name=".ui.activities.GroupDetail" />
+        <activity android:name=".ui.activities.AddtogroupActivity"></activity>
     </application>
 
 </manifest>

@@ -2,6 +2,8 @@ package app.wingman.ui.adapters;
 
 import android.app.Activity;
 import android.content.Context;
+import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,10 +14,22 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.quickblox.chat.QBChat;
+import com.quickblox.chat.exception.QBChatException;
+import com.quickblox.chat.listeners.QBMessageListener;
+import com.quickblox.chat.model.QBAttachment;
 import com.quickblox.chat.model.QBChatMessage;
 
+import com.quickblox.content.QBContent;
+import com.quickblox.core.QBEntityCallbackImpl;
 import com.quickblox.users.model.QBUser;
+import com.squareup.picasso.Picasso;
 
+
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import app.wingman.R;
@@ -23,10 +37,36 @@ import app.wingman.core.ChatService;
 import app.wingman.utils.TimeUtils;
 
 
-public class ChatAdapter extends BaseAdapter {
+public class ChatAdapter extends BaseAdapter implements QBMessageListener {
 
     private final List<QBChatMessage> chatMessages;
     private Activity context;
+
+    @Override
+    public void processMessage(QBChat qbChat, QBChatMessage qbChatMessage) {
+        for(QBAttachment attachment : qbChatMessage.getAttachments()){
+            Integer fileId = Integer.parseInt(attachment.getId());
+
+            // download a file
+            QBContent.downloadFileTask(fileId, new QBEntityCallbackImpl<InputStream>() {
+                @Override
+                public void onSuccess(InputStream inputStream, Bundle params) {
+                    // process file
+                    Log.e("received msg",inputStream.toString());
+                }
+
+                @Override
+                public void onError(List<String> errors) {
+                    // errors
+                }
+            });
+        }
+    }
+
+    @Override
+    public void processError(QBChat qbChat, QBChatException e, QBChatMessage qbChatMessage) {
+
+    }
 
     private enum ChatItemType {
         Message,
@@ -79,25 +119,44 @@ public class ChatAdapter extends BaseAdapter {
         QBChatMessage chatMessage = getItem(position);
         LayoutInflater vi = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-        if (convertView == null) {
-            if (getItemViewType(position) == ChatItemType.Sticker.ordinal()) {
-                convertView = vi.inflate(R.layout.list_item_sticker, parent, false);
-            } else {
+        //  if (convertView == null)
+        {
+//            if (!getAttachUrlIfExists(chatMessage).equals("")) {
+//                convertView = vi.inflate(R.layout.list_item_sticker, parent, false);
+//            } else
+            {
                 convertView = vi.inflate(R.layout.list_item_message, parent, false);
             }
             holder = createViewHolder(convertView);
             convertView.setTag(holder);
-        } else {
-            holder = (ViewHolder) convertView.getTag();
         }
 
-        QBUser currentUser = app.wingman.core.ChatService.getInstance().getCurrentUser();
+//        else {
+//            holder = (ViewHolder) convertView.getTag();
+//        }
+
+        QBUser currentUser = ChatService.getInstance().getCurrentUser();
         boolean isOutgoing = chatMessage.getSenderId() == null || chatMessage.getSenderId().equals(currentUser.getId());
         setAlignment(holder, isOutgoing);
+try {
+    if (!getAttachUrlIfExists(chatMessage).equals("")) {
+        holder.txtMessage.setVisibility(View.GONE);
 
-        {
-            holder.txtMessage.setText(chatMessage.getBody());
+        if (!getAttachUrlIfExists(chatMessage).equals("")) {
+            Picasso.with(context)
+                    .load(getAttachUrlIfExists(chatMessage))
+                    .into(holder.stickerView);
         }
+    } else {
+        holder.stickerView.setVisibility(View.GONE);
+        holder.txtMessage.setText(chatMessage.getBody());
+
+    }
+
+}catch (Exception e){
+    e.printStackTrace();
+}
+
         if (chatMessage.getSenderId() != null) {
             holder.txtInfo.setText(chatMessage.getSenderId() + ": " + getTimeText(chatMessage));
         } else {
@@ -105,7 +164,23 @@ public class ChatAdapter extends BaseAdapter {
         }
         return convertView;
     }
-
+    public static String getAttachUrlIfExists(QBChatMessage chatMessage) {
+        String attachURL = "";
+        Collection<QBAttachment> attachmentCollection = chatMessage.getAttachments();
+        if (attachmentCollection != null && attachmentCollection.size() > 0) {
+            attachURL = getAttachUrlFromMessage(attachmentCollection);
+        }
+        return attachURL;
+    }
+    public static String getAttachUrlFromMessage(Collection<QBAttachment> attachmentsCollection) {
+        if (attachmentsCollection != null) {
+            ArrayList<QBAttachment> attachmentsList = new ArrayList<QBAttachment>(attachmentsCollection);
+            if (!attachmentsList.isEmpty()) {
+                return attachmentsList.get(0).getUrl();
+            }
+        }
+        return "";
+    }
     public void add(QBChatMessage message) {
         chatMessages.add(message);
     }
@@ -172,7 +247,7 @@ public class ChatAdapter extends BaseAdapter {
     }
 
     private String getTimeText(QBChatMessage message) {
-        return app.wingman.utils.TimeUtils.millisToLongDHMS(message.getDateSent() * 1000);
+        return TimeUtils.millisToLongDHMS(message.getDateSent() * 1000);
     }
 
     private static class ViewHolder {

@@ -32,9 +32,11 @@ import com.quickblox.chat.model.QBDialog;
 import com.quickblox.core.QBEntityCallbackImpl;
 
 
+
 import java.util.ArrayList;
 import java.util.List;
 
+import app.wingman.ApplicationSingleton;
 import app.wingman.R;
 import app.wingman.core.Chat;
 import app.wingman.core.ChatService;
@@ -43,7 +45,11 @@ import app.wingman.pushnotifications.PlayServicesHelper;
 import app.wingman.ui.activities.*;
 import app.wingman.ui.activities.ChatActivity;
 import app.wingman.ui.adapters.DialogsAdapter;
+
+import app.wingman.utils.GetMyLocation;
+
 import jp.co.recruit_lifestyle.android.widget.WaveSwipeRefreshLayout;
+
 
 public class DialogsActivity extends BaseActivity {
 
@@ -185,6 +191,8 @@ public class DialogsActivity extends BaseActivity {
         app.wingman.core.ChatService.getInstance().getDialogs(new QBEntityCallbackImpl() {
             @Override
             public void onSuccess(Object object, Bundle bundle) {
+
+                System.out.println("load next session response");
                 progressBar.setVisibility(View.GONE);
                 mWaveSwipeRefreshLayout.setRefreshing(false);
                 final ArrayList<QBDialog> dialogs = (ArrayList<QBDialog>)object;
@@ -209,6 +217,7 @@ public class DialogsActivity extends BaseActivity {
     void buildListView(List<QBDialog> dialogs){
         final app.wingman.ui.adapters.DialogsAdapter adapter = new app.wingman.ui.adapters.DialogsAdapter(dialogs, app.wingman.ui.activities.DialogsActivity.this);
         dialogsListView.setAdapter(adapter);
+
 
         // choose dialog
         //
@@ -297,11 +306,13 @@ public class DialogsActivity extends BaseActivity {
             @Override
             public void run() {
                 if (success) {
+                    System.out.println("load next session recreate");
                     getDialogs();
                 }
             }
         });
     }
+
 
     boolean doubleBackToExitPressedOnce = false;
 
@@ -365,6 +376,7 @@ public class DialogsActivity extends BaseActivity {
 //        notificationManager.notify(0, mNotification);
 //
 //    }
+
 
 
 
