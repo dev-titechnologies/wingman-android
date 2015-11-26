@@ -33,9 +33,7 @@
     <string name="app_id">1535740343360522</string>
 
 
-
     <!-- TODO: Remove or change this placeholder text -->
-
 
 
     <string name="closeDrawer">Navigation View</string>
@@ -48,7 +46,7 @@
     <string name="Groups">Groups</string>
     <string name="Messages">Messages</string>
     <string name="CreateGroup">Create Group</string>
-
+    <string name="title_activity_search">SearchActivity</string>
 
 
 </resources>

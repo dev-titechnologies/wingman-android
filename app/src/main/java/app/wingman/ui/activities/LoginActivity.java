@@ -66,11 +66,14 @@ import com.quickblox.auth.model.QBSession;
 import com.quickblox.content.QBContent;
 import com.quickblox.content.model.QBFile;
 
+import com.quickblox.core.Consts;
+import com.quickblox.core.QBEntityCallbackImpl;
 import com.quickblox.core.exception.BaseServiceException;
 import com.quickblox.core.exception.QBResponseException;
 import com.quickblox.core.helper.StringifyArrayList;
 
 
+import com.quickblox.core.request.QBPagedRequestBuilder;
 import com.quickblox.users.QBUsers;
 import com.quickblox.users.model.QBUser;
 import com.quickblox.users.result.QBUserResult;
@@ -92,6 +95,9 @@ import java.util.List;
 import app.wingman.ApplicationSingleton;
 import app.wingman.R;
 import app.wingman.core.ChatService;
+import app.wingman.database.CommentsDataSource;
+import app.wingman.interfaces.ContactsQuery;
+import app.wingman.models.modelclass;
 import app.wingman.networks.Connecttoget;
 import app.wingman.settings.Urls;
 import app.wingman.utils.PreferencesUtils;
@@ -216,8 +222,22 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
 
                         if (((Button) view).getText().toString().equals(getResources().getString(R.string.action_sign_in)))
                             attemptLogin();
-                        else
-                            attemptSignup();
+
+                        else {
+                            if (count == 0) {
+                                alertLayout.setVisibility(View.VISIBLE);
+                                mUserTopLayout.setVisibility(View.GONE);
+                                count++;
+                            } else {
+                                if (cameraFileName.length() > 0) {
+                                    new CheckEmail().execute();
+                                } else {
+                                    Toast.makeText(LoginActivity.this, "Please select a profile pic", Toast.LENGTH_LONG).show();
+                                }
+                            }
+
+
+                        }
 
 
 
@@ -679,11 +699,10 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
             super.onPostExecute(s);
             if(s) {
                 saveUser( email, password);
-                Intent intent = new Intent(LoginActivity.this, DialogsActivity.class);
-                startActivity(intent);
+               retrieveAllUsersFromPage(1);
             }else{
 
-                ApplicationSingleton.ShowAlert(LoginActivity.this,message);
+                ApplicationSingleton.ShowFailedAlert(LoginActivity.this,message);
             }
         }
     }
@@ -766,11 +785,10 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
             super.onPostExecute(s);
             if(s) {
                 saveUser( user.getEmail(), psswrd);
-                Intent intent = new Intent(LoginActivity.this, PickContact.class);
-                startActivity(intent);
+               retrieveAllUsersFromPage(1);
             }else{
 
-                ApplicationSingleton.ShowAlert(LoginActivity.this,message);
+                ApplicationSingleton.ShowFailedAlert(LoginActivity.this,message);
             }
         }
     }
@@ -1264,6 +1282,91 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
         return path;
     }
 
+    /**
+     get all users
+     @param page-pagecount
+     */
+    public  void retrieveAllUsersFromPage(int page){
+
+
+        final CommentsDataSource obj=new CommentsDataSource(this);
+        obj.open();
+
+        final QBPagedRequestBuilder pagedRequestBuilder = new QBPagedRequestBuilder();
+        pagedRequestBuilder.setPage(page);
+        pagedRequestBuilder.setPerPage(100);
+        Toast.makeText(getApplicationContext(), "retrieving users", Toast.LENGTH_LONG).show();
+
+
+        // You have successfully created the session
+        //
+        // Now you can use QuickBlox API!
+
+        QBUsers.getUsers(pagedRequestBuilder, new QBEntityCallbackImpl<ArrayList<QBUser>>() {
+
+            int userNumber = 1;
+
+            @Override
+            public void onSuccess(ArrayList<QBUser> users, Bundle params) {
+
+
+                ArrayList<modelclass> userList = new ArrayList<modelclass>();
+                int size = users.size();
+                for (int i = 0; i < size; i++) {
+
+                    if (SplashActivity.phones.contains(users.get(i).getPhone())) {
+                        modelclass obj = new modelclass();
+                        obj.setUserName(users.get(i).getFullName().toLowerCase().trim());
+                        obj.setUserEmail(users.get(i).getEmail());
+                        obj.setUserId(users.get(i).getId().toString());
+                        if(users.get(i).getCustomData()==null)
+                            obj.setUserCustomData("{\"user_info\":\"hii I am using Wingman\",\"profile_pic\":\"\"}");
+                        else
+                        obj.setUserCustomData(users.get(i).getCustomData());
+                        obj.setUserPhone(users.get(i).getPhone());
+                        userList.add(obj);
+
+                    }
+                }
+
+                if (userList.size() > 0)
+                    obj.bulkInsertUserData(userList);
+
+                Toast.makeText(getApplicationContext(), "users merged" + userList.size(), Toast.LENGTH_LONG).show();
+
+                userNumber = users.size() + 1;
+                int currentPage = params.getInt(Consts.CURR_PAGE);
+                int totalEntries = params.getInt(Consts.TOTAL_ENTRIES);
+
+                if (userNumber < totalEntries) {
+                    retrieveAllUsersFromPage(currentPage + 1);
+                } else{
+
+                    if (mEmailSignInButton.getText().toString().equals(getResources().getString(R.string.action_sign_in))) {
+                        Intent in = new Intent(LoginActivity.this, DialogsActivity.class);
+                        startActivity(in);
+                    }
+                    else{
+                        Intent intent = new Intent(LoginActivity.this, PickContact.class);
+                        startActivity(intent);
+                    }
+
+                }
+            }
+
+            @Override
+            public void onError(List<String> errors) {
+
+                ApplicationSingleton.ShowFailedAlert(getApplicationContext(),"Sorry some error occurred on loading the app"+errors.toString());
+
+            }
+        });
+
+
+
+
+
+    }
 
 
 

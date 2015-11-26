@@ -11,13 +11,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
 import android.util.Log;
-
+import android.widget.Toast;
 
 
 import app.wingman.models.modelclass;
@@ -58,34 +59,46 @@ public class CommentsDataSource {
 
 
 		  for(int i =0;i<lst.size();i++){
-  			
-  		
-  			
-  			
+
 			try {
+				Cursor cursor = database.query(MySQLiteHelper.TABLE_USER, new String[] { MySQLiteHelper.CHAT_ID,MySQLiteHelper.USER_NAME,
+						}, MySQLiteHelper.CHAT_ID + "=?",
+						new String[] { (lst.get(i).getUserId()) }, null, null, null, null);
 
 
-				//System.out.println("getting maincats  db" + lst.get(i).getmCategoryName());
+				if (cursor == null || cursor.getCount()==0) {
+
+
+			System.out.println("adding user " + lst.get(i).getUserName());
 	  			statement.clearBindings();
-              
+
                 statement.bindString(2, lst.get(i).getUserId());
               statement.bindString(3, lst.get(i).getUserName());
                statement.bindString(4, lst.get(i).getUserCustomData());
 				statement.bindString(5, lst.get(i).getUserEmail());
 				statement.bindString(6, lst.get(i).getUserPhone());
-                statement.execute();         
-                
-               
-	  			
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
+                statement.execute();
+
+
+
+
+
+
+		  }else{
+
+			  updateUsers(lst.get(i));
+		  }
+
+		  } catch (IllegalArgumentException e) {
+			  // TODO Auto-generated catch block
+			  e.printStackTrace();
+
+		  }catch(Exception e){
+
 				e.printStackTrace();
 			}
-      	}
-        database.setTransactionSuccessful();	
-        database.endTransaction();                          
-        
-        
+		  }database.setTransactionSuccessful();
+		  database.endTransaction();
         
        // Log.e("bulk complete","bulk complete");    
       	
@@ -104,18 +117,25 @@ public class CommentsDataSource {
 
 			try {
 
+				Cursor cursor = database.query(MySQLiteHelper.TABLE_USER, new String[] { MySQLiteHelper.CHAT_ID,MySQLiteHelper.USER_NAME,
+						}, MySQLiteHelper.CHAT_ID + "=?",
+						new String[] { (lst.get(i).getGroupid()) }, null, null, null, null);
+				System.out.println("cursor size"+cursor.getCount());
+				if (cursor == null) {
 
 
-				statement.clearBindings();
+					statement.bindString(3, lst.get(i).getGroupName());
+					statement.bindString(2, lst.get(i).getGroupid());
+					//statement.bindString(4, url);
+					//statement.bindString(5, tag);
+					statement.bindString(4, lst.get(i).getGroupUsers());
+					statement.bindString(5, lst.get(i).getAdminId());
+					statement.bindString(6, lst.get(i).getGroupTags());
+					statement.execute();
+				}else{
 
-				statement.bindString(3, lst.get(i).getGroupName());
-				statement.bindString(2, lst.get(i).getGroupid());
-				//statement.bindString(4, url);
-				//statement.bindString(5, tag);
-				statement.bindString(4, lst.get(i).getGroupUsers());
-				statement.bindString(5, lst.get(i).getAdminId());
-				statement.bindString(6, lst.get(i).getGroupTags());
-				statement.execute();
+					updateUsers(lst.get(i));
+				}
 
 
 
@@ -134,25 +154,23 @@ public class CommentsDataSource {
 	}
 
 
-
-
-
 	  
-//	  public int updateUsers(CategoryModel comment) {
-//
-//
-//
-//	        ContentValues values = new ContentValues();
-//	        values.put(MySQLiteHelper.CAT_NAME, comment.getmCategoryName());
-//		    values.put(MySQLiteHelper.CAT_ID, comment.getmCategoryId());
-//		    values.put(MySQLiteHelper.CAT_IMAGE,comment.getmImage());
-//		    values.put(MySQLiteHelper.CAT_DETAIL, comment.getmDetails());
-//
-//
-//	        // updating row
-//	        return database.update(MySQLiteHelper.TABLE_MAINCATEGORY, values, MySQLiteHelper.CAT_ID + " = ?",
-//	                new String[] { String.valueOf(comment.getmCategoryId()) });
-//	    }
+	  public int updateUsers(modelclass comment) {
+
+
+		  System.out.println("adding user update " + comment.getUserName());
+	        ContentValues values = new ContentValues();
+	        values.put(MySQLiteHelper.USER_NAME, comment.getUserName());
+		    values.put(MySQLiteHelper.CHAT_ID, comment.getUserId());
+		    values.put(MySQLiteHelper.USER_CUSTOMDATA,comment.getUserCustomData());
+		    values.put(MySQLiteHelper.USER_PHONE, comment.getUserPhone());
+		  values.put(MySQLiteHelper.USER_EMAIL, comment.getUserEmail());
+
+
+	        // updating row
+	        return database.update(MySQLiteHelper.TABLE_USER, values, MySQLiteHelper.CHAT_ID + " = ?",
+	                new String[] { String.valueOf(comment.getUserId()) });
+	    }
 	  
 	 public  modelclass getUser(String id) {
 	        
@@ -203,36 +221,41 @@ public class CommentsDataSource {
 		return comments;
 	}
 
+/**
+used for searching names
+ @param searchKey- key passed from search function of toolbar
+ */
+	public ArrayList<modelclass> getSearchResult(String searchKey){
 
-//	public String getIdFromCatName(String name){
-//
-//		String id="0";
-//
-//		Cursor cursor = database.query(MySQLiteHelper.TABLE_MAINCATEGORY,
-//				new String[]{MySQLiteHelper.CAT_ID, MySQLiteHelper.CAT_NAME,
-//				}, MySQLiteHelper.CAT_NAME + "=?",
-//				new String[]{name}, null, null, null, null);
-//
-//		cursor.moveToFirst();
-//
-//			id=cursor.getString(0);
-//            System.out.println("selected name" + cursor.getString(1));
-//
-//		// make sure to close the cursor
-//        cursor.close();
-//
-//		return id;
-//	}
+		ArrayList<modelclass> comments = new ArrayList<modelclass>();
+		String id="0";
+		String selectQuery = "SELECT  * FROM " + MySQLiteHelper.TABLE_USER+ " WHERE "+MySQLiteHelper.USER_NAME+" LIKE ?";
+		Cursor cursor = database.rawQuery(selectQuery, new String[]{"%"+searchKey.toLowerCase()+"%"});
+
+		cursor.moveToFirst();
+		while (!cursor.isAfterLast()) {
+			modelclass comment = cursorToComment(cursor);
+			comments.add(comment);
+			cursor.moveToNext();
+		}
+		// make sure to close the cursor
+		cursor.close();
+
+		// make sure to close the cursor
+
+
+		return comments;
+	}
 
 	 private modelclass cursorToComment(Cursor cursor) {
 
 		 modelclass comment = new modelclass();
 		    //System.out.println("savingid"+cursor.getString(0));
-		    comment.setUserId(cursor.getString(0));
-		    comment.setUserName(cursor.getString(1));
-		 comment.setUserName(cursor.getString(2));
-		 comment.setUserName(cursor.getString(3));
-		 comment.setUserName(cursor.getString(4));
+		    comment.setUserId(cursor.getString(1));
+		    comment.setUserName(cursor.getString(2));
+		 comment.setUserCustomData(cursor.getString(3));
+		 comment.setUserEmail(cursor.getString(4));
+		 comment.setUserPhone(cursor.getString(5));
 
 		    return comment;
 		  }

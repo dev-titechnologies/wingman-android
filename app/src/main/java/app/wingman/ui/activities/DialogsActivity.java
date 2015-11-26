@@ -4,7 +4,9 @@ import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.SearchManager;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -17,6 +19,7 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -48,6 +51,7 @@ import app.wingman.ui.adapters.DialogsAdapter;
 
 import app.wingman.utils.GetMyLocation;
 
+import app.wingman.utils.PreferencesUtils;
 import jp.co.recruit_lifestyle.android.widget.WaveSwipeRefreshLayout;
 
 
@@ -65,6 +69,7 @@ public class DialogsActivity extends BaseActivity {
     private Toolbar toolbar;
     private NavigationView navigationView;
     private DrawerLayout drawerLayout;
+    SearchView searchview=null;
 
 
 
@@ -72,6 +77,8 @@ public class DialogsActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.dialogs_activity);
+
+        PreferencesUtils.saveData("callfromgroup", "false", getApplicationContext());
 
         playServicesHelper = new app.wingman.pushnotifications.PlayServicesHelper(this);
 
@@ -138,6 +145,8 @@ public class DialogsActivity extends BaseActivity {
                         Toast.makeText(getApplicationContext(),"Request Selected",Toast.LENGTH_SHORT).show();
                         return true;
                     case R.id.Groups:
+
+                        PreferencesUtils.saveData("callfromgroup","true",getApplicationContext());
                          Intent groups = new Intent(getApplicationContext(),GroupsActivity.class);
                         startActivity(groups);
                         return true;
@@ -248,6 +257,18 @@ public class DialogsActivity extends BaseActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.rooms, menu);
+
+        MenuItem item=(MenuItem)menu.findItem(R.id.action_search);
+        SearchManager manager=(SearchManager)DialogsActivity.this.getSystemService(Context.SEARCH_SERVICE);
+
+
+        if(item!=null){
+
+            searchview=(SearchView)item.getActionView();
+        }if(searchview!=null){
+            ComponentName cn = new ComponentName(this, SearchActivity.class);
+            searchview.setSearchableInfo(manager.getSearchableInfo(DialogsActivity.this.getComponentName()));
+        }
         return true;
     }
 
@@ -274,6 +295,7 @@ public class DialogsActivity extends BaseActivity {
 
             return true;
         }
+
         return super.onOptionsItemSelected(item);
     }
 
