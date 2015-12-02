@@ -16,7 +16,8 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.ContactsContract;
-import android.support.design.widget.Snackbar;
+
+import android.support.multidex.MultiDex;
 import android.util.Log;
 import android.view.View;
 
@@ -86,7 +87,10 @@ public class ApplicationSingleton extends Application {
 
 
     }
-
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(base);
+        MultiDex.install(this);
+    }
     @Override
     public void onCreate() {
         super.onCreate();
@@ -161,11 +165,15 @@ public class ApplicationSingleton extends Application {
 
     public static void ShowSuccessAlert(Context context, String message) {
 
+        try {
+            new SweetAlertDialog(context, SweetAlertDialog.SUCCESS_TYPE)
+                    .setTitleText("SUCCESS")
+                    .setContentText(message)
+                    .show();
+        }catch(Exception e){
 
-        new SweetAlertDialog(context, SweetAlertDialog.SUCCESS_TYPE)
-                .setTitleText("SUCCESS")
-                .setContentText(message)
-                .show();
+            e.printStackTrace();
+        }
 
     }
     public static void ShowFailedAlert(Context context, String message) {
@@ -184,12 +192,16 @@ public class ApplicationSingleton extends Application {
     }
     public static void ShowWarningAlert(Context context, String message) {
 
-
+        try {
         new SweetAlertDialog(context, SweetAlertDialog.WARNING_TYPE)
                 .setTitleText("ALERT")
                 .setContentText(message)
                 .setConfirmText("OK")
                 .show();
+        }catch(Exception e){
+
+            e.printStackTrace();
+        }
 
     }
 

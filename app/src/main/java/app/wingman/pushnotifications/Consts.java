@@ -5,7 +5,8 @@ package app.wingman.pushnotifications;
  */
 public class Consts {
     // In GCM, the Sender ID is a project ID that you acquire from the API console
-    public static final String PROJECT_NUMBER = "879155005725";
+
+    public static final String PROJECT_NUMBER = "938081835324";
 
     public static final String EXTRA_MESSAGE = "message";
 

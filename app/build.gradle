@@ -8,7 +8,7 @@ android {
 
         applicationId "app.wingman"
         minSdkVersion 14
-
+        multiDexEnabled true
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
@@ -24,6 +24,7 @@ repositories {
     maven {
         url "https://jitpack.io"
     }
+
     mavenCentral()
     jcenter()
 }
@@ -36,10 +37,6 @@ dependencies {
     compile project(':pull-to-refresh')
     compile project(':FacebookSDK')
 
-
-
-
-    compile project(':FacebookSDK')
     compile files('libs/quickblox-android-sdk-messages-2.3.1.jar')
 
 
@@ -53,5 +50,12 @@ dependencies {
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'com.android.support:recyclerview-v7:23.1.1'
     compile 'org.adw.library:discrete-seekbar:1.0.0'
+    compile 'com.github.siyamed:android-shape-imageview:0.9.+@aar'
+
+    compile files('libs/quickblox-android-sdk-messages-2.3.1.jar')
+
+
+
+
 }
 

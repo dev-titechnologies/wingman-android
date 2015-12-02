@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context=".MainActivity">
+    tools:context=".ui.activities.DialogsActivity">
 
 <LinearLayout
     android:layout_width="match_parent"
@@ -20,7 +20,15 @@
 android:id="@+id/toolbar"
         app:theme="@style/ThemeOverlay.AppCompat.ActionBar"
         android:background="@color/colorPrimary"/>
+    <ProgressBar
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/progressBar"
 
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:layout_gravity="center_horizontal" />
     <jp.co.recruit_lifestyle.android.widget.WaveSwipeRefreshLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -32,14 +40,7 @@ android:id="@+id/toolbar"
         android:layout_height="match_parent"
         android:orientation="vertical"/>
 </jp.co.recruit_lifestyle.android.widget.WaveSwipeRefreshLayout>
-    <ProgressBar
-        style="?android:attr/progressBarStyleLarge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/progressBar"
-        android:visibility="gone"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true" />
+
 
 </LinearLayout>
     <android.support.design.widget.NavigationView

@@ -2,33 +2,26 @@ package app.wingman.ui.activities;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.Context;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.Color;
-import android.net.Uri;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
+import android.os.AsyncTask;
+import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.quickblox.chat.QBChatService;
 import com.quickblox.chat.model.QBDialog;
 import com.quickblox.chat.model.QBDialogType;
-import com.quickblox.core.Consts;
 import com.quickblox.core.QBEntityCallbackImpl;
 import com.quickblox.core.request.QBPagedRequestBuilder;
 import com.quickblox.users.QBUsers;
@@ -44,20 +37,22 @@ import java.util.List;
 
 import app.wingman.R;
 
-import app.wingman.interfaces.ContactsQuery;
+import app.wingman.networks.Connecttoget;
+import app.wingman.settings.Urls;
 import app.wingman.ui.adapters.CreateGrpuserAdapter;
 import app.wingman.utils.PreferencesUtils;
 import app.wingman.utils.tagview.OnTagClickListener;
 import app.wingman.utils.tagview.Tag;
 import app.wingman.utils.tagview.TagView;
 
-public class CreateGroup extends AppCompatActivity implements
-        LoaderManager.LoaderCallbacks<Cursor>{
+public class CreateGroup extends AppCompatActivity  {
     CreateGrpuserAdapter mAdapter;
     ListView contactlist;
     EditText groupname;
     ImageButton tags;
     Button creategrpButton;
+    ArrayList <String> mcontacts= new ArrayList<String>();
+    String phoneNumber;
     private List<String> selected = new ArrayList<String>();
 
     private List<Object[]> alphabet = new ArrayList<Object[]>();
@@ -67,6 +62,8 @@ public class CreateGroup extends AppCompatActivity implements
     public static ArrayList<String> phones = new ArrayList<String>();
     public static ArrayList<QBUser> userslist=new ArrayList<QBUser>();
     int pageCount=0;
+    JSONObject groupapi;
+    ProgressBar progressBar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -75,6 +72,7 @@ public class CreateGroup extends AppCompatActivity implements
         groupname =(EditText)findViewById(R.id.groupname);
         creategrpButton = (Button)findViewById(R.id.creategrpButton);
         tags=(ImageButton)findViewById(R.id.tags);
+        progressBar = (ProgressBar)findViewById(R.id.progressBar);
         tags.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -86,28 +84,59 @@ public class CreateGroup extends AppCompatActivity implements
         creategrpButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mAdapter.getSelected().size() > 1 && groupname.getText().toString().length() > 1) {
-                    app.wingman.core.ChatService.getInstance().addDialogsUsers(mAdapter.getSelected());
+                if (CreateGrpuserAdapter.selected.size() > 1 && groupname.getText().toString().length() > 1)
+
+                {
+                    app.wingman.core.ChatService.getInstance().addDialogsUsers(CreateGrpuserAdapter.selected);
 
                     // Create new group dialog
-                    //
+                    progressBar.setVisibility(View.VISIBLE);
                     QBDialog dialogToCreate = new QBDialog();
                     dialogToCreate.setName(groupname.getText().toString());
-                    if (mAdapter.getSelected().size() == 1) {
-                        dialogToCreate.setType(QBDialogType.PRIVATE);
-                    } else {
+//                    if (CreateGrpuserAdapter.selected.size() == 1) {
+//                        dialogToCreate.setType(QBDialogType.PRIVATE);
+//                    } else
+
+                    {
                         dialogToCreate.setType(QBDialogType.GROUP);
                     }
-                    dialogToCreate.setOccupantsIds(getUserIds(mAdapter.getSelected()));
+
+                    //for creating a empty group
+
+                  //  dialogToCreate.setOccupantsIds(getUserIds(mAdapter.getSelected()));
 
                     QBChatService.getInstance().getGroupChatManager().createDialog(dialogToCreate, new QBEntityCallbackImpl<QBDialog>() {
                         @Override
                         public void onSuccess(QBDialog dialog, Bundle args) {
-                            if (mAdapter.getSelected().size() == 1) {
-                                startSingleChat(dialog);
-                            } else {
-                                startGroupChat(dialog);
+                            groupapi = new JSONObject();
+
+try{
+
+
+
+                                groupapi.put("group_qb_id",dialog.getDialogId().toString());
+                                groupapi.put("group_name",dialog.getName().toString());
+                                groupapi.put("admin_id",PreferencesUtils.getData("user_id", getApplicationContext()));
+
+                                groupapi.put("tag_list", selected.toString());
+
+                                groupapi.put("occupantsIds",getUserIds(CreateGrpuserAdapter.selected).toString());
+                            } catch (JSONException e) {
+                                e.printStackTrace();
                             }
+
+new createGroupApi().execute();
+//                            if (mAdapter.getSelected().size() == 1) {
+//                                startSingleChat(dialog);
+//                            } else
+//
+                            {
+//                                startGroupChat(dialog);
+                            }
+
+
+
+
                         }
 
                         @Override
@@ -134,9 +163,12 @@ public class CreateGroup extends AppCompatActivity implements
                 finish();
             }
         });
+
+        getNumber(this.getContentResolver());
+
         retrieveAllUsersFromPage(1);
 
-        mAdapter = new CreateGrpuserAdapter(CreateGroup.this);
+
         contactlist = (ListView) findViewById(R.id.lstcontacts);
 
     }
@@ -158,41 +190,34 @@ public void Showtags(){
             JSONObject c = tagData.getJSONObject(i);
             Tag tag = new Tag(c.getString("tag_name"));
             tag.radius = 10f;
+            tag.id=Integer.parseInt(c.getString("id"));
             tag.layoutColor = (R.color.colorAccent);
 
             tags.add(tag);
 
 
             view.addTags(tags);
-            view.setTag(c.getString("tag_name"));
+            view.setTag(c.getString("id"));
         }
     } catch (JSONException e) {
         e.printStackTrace();
     }
 
-//    for(int i=0; i<10;i++){
-////        LayoutInflater inflater = LayoutInflater.from(getApplicationContext());
-////        View inflatedLayout= inflater.inflate(R.layout.tag_item, null, false);
-//        Tag tag = new Tag("tag"+i);
-//        tag.radius = 10f;
-//        tag.layoutColor = (R.color.colorAccent);
-//
-//        tags.add(tag);
-//
-//
-//        view.addTags(tags);
-//        view.setTag("test"+i);
-//
-//    }
+
 
     view.setOnTagClickListener(new OnTagClickListener() {
         @Override
         public void onTagClick(Tag tag, int position) {
             if(selected.contains(tag.text)){
-                selected.remove(tag.text);}
+                selected.remove(   tag.id);
+            }
                 else{
-            selected.add(tag.text);}
-            Log.e("selected tags",selected.toString());
+            selected.add(tag.id+"");
+
+            }
+
+
+            Log.e("selected tags",  selected.toString());
             Toast.makeText(getApplicationContext(),tag.text,2000).show();
 
         }
@@ -211,29 +236,7 @@ public void Showtags(){
 
     dialog.show();
 }
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        if (id == ContactsQuery.QUERY_ID)
-        {
-            Uri contentUri;
 
-
-
-            contentUri = ContactsQuery.CONTENT_URI;
-
-
-            return new CursorLoader(CreateGroup.this,
-                    contentUri,
-                    ContactsQuery.PROJECTION,
-                    ContactsQuery.SELECTION,
-                    null,
-                    ContactsQuery.SORT_ORDER);
-        }
-
-
-
-        return null;
-    }
     public static ArrayList<Integer> getUserIds(List<QBUser> users){
         ArrayList<Integer> ids = new ArrayList<Integer>();
         for(QBUser user : users){
@@ -241,72 +244,17 @@ public void Showtags(){
         }
         return ids;
     }
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-
-
-
-        if (loader.getId() == ContactsQuery.QUERY_ID) {
-
-            mAdapter.swapCursor(data);
-
-            data.moveToFirst();
-
-//            do{
-//                try{
-//                    names.add(data.getString(2));
-//                }
-//                catch(Exception e){
-//                    e.printStackTrace();
-//                }
-//                Constantss.selectedcontactsarray.add("0");
-//
-//            } while(data.moveToNext());
-
-
-
-
-
-
-
-
-
-            //////////////////////////////////////////////
-
-
-
-            contactlist.setAdapter(mAdapter);
-//            contactlist.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//                @Override
-//                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                    Log.e("item data",userslist.get(position).getPhone().indexOf());
-//                }
-//            });
-
-
-
-//	     	       contactlist.setOnScrollListener(new AbsListView.OnScrollListener() {
-//	     	            @Override
-//	     	            public void onScrollStateChanged(AbsListView absListView, int scrollState) {
-//	     	                // Pause image loader to ensure smoother scrolling when flinging
-//	     	                if (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_FLING) {
-//
-//	     	                	//System.out.println("scroll fling");
-//	     	                } else {
-//
-//	     	                	//System.out.println("scroll not fling");
-//	     	                }
-//	     	            }
-//
-//	     	            @Override
-//	     	            public void onScroll(AbsListView absListView, int i, int i1, int i2) {}
-//	     	        });
-
-
+    public void getNumber(ContentResolver cr)
+    {
+        Cursor phones = cr.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,null,null, null);
+        while (phones.moveToNext())
+        {
+            String name=phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
+            phoneNumber = (phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER))).replaceAll("\\p{P}","").replaceAll(" ","");
+            System.out.println(".................."+phoneNumber);
+            mcontacts.add(phoneNumber);
         }
-
-
-        ///////////////////////////////////////////////////////////////////
+        phones.close();// close cursor
 
     }
     private void retrieveAllUsersFromPage(int page){
@@ -316,30 +264,29 @@ public void Showtags(){
 
         QBUsers.getUsers(pagedRequestBuilder, new QBEntityCallbackImpl<ArrayList<QBUser>>() {
 
-            int userNumber = 1;
+
 
             @Override
             public void onSuccess(ArrayList<QBUser> users, Bundle params) {
 
+                ArrayList<QBUser>name = new ArrayList<QBUser>();
+                for(int i =0;i<users.size();i++){
+                    Log.e("mobile from qb",users.get(i).getPhone().toString());
+                    if(containsEqualsIgnoreCase(mcontacts,users.get(i).getPhone())){
 
-                int size = users.size();
-                for (int i = 0; i < size; i++) {
 
-                    phones.add(users.get(i).getPhone());
-                    userslist.addAll(users);
+
+                            name.add(users.get(i));
+
+                    }
                 }
 
-                userNumber = users.size() + 1;
-                int currentPage = params.getInt(Consts.CURR_PAGE);
-                int totalEntries = params.getInt(Consts.TOTAL_ENTRIES);
 
-                if (userNumber < totalEntries) {
-                    retrieveAllUsersFromPage(currentPage + 1);
-                } else {
 
-                    PreferencesUtils.SaveUsers("users", userslist, phones, CreateGroup.this);
-                    getSupportLoaderManager().initLoader(1, null, CreateGroup.this);
-                }
+                mAdapter = new CreateGrpuserAdapter(getApplicationContext(),name );
+                contactlist.setAdapter(mAdapter);
+                mAdapter.notifyDataSetChanged();
+                progressBar.setVisibility(View.GONE);
             }
 
             @Override
@@ -351,23 +298,53 @@ public void Showtags(){
     }
 
 
-    // Start
 
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
 
+    public  class createGroupApi extends AsyncTask<String,String,String> {
+
+        @Override
+        protected String doInBackground(String... params) {
+Log.e("request create grp",groupapi.toString());
+            String res = Connecttoget.callJsonWithparams(Urls.CREATEGROUP,groupapi.toString());
+            Log.e("response ",res);
+            return res;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            try {
+                JSONObject r = new JSONObject(s);
+                progressBar.setVisibility(View.GONE);
+            if(r.getInt("status")==1){
+
+                Toast.makeText(getApplicationContext(),"Group Created..!",2000).show();
+               Intent i = new Intent(getApplicationContext(),DialogsActivity.class);
+                startActivity(i);
+                finish();
+
+            }else{
+                Toast.makeText(getApplicationContext(),"Error..!",2000).show();
+            }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+
+
+        }
+    } //code for comparing string with array
+    boolean containsEqualsIgnoreCase(ArrayList<String> c, String s) {
+
+        for (String str : c) {
+            if (s.equalsIgnoreCase(str)) {
+                Log.e("compare numbers",str+"=="+s);
+                return true;
+            }else{
+                Log.e("compare fails",str+"=="+s);
+            }
+        }
+        return false;
     }
-    public void startSingleChat(QBDialog dialog) {
-        Bundle bundle = new Bundle();
-        bundle.putSerializable(app.wingman.ui.activities.ChatActivity.EXTRA_DIALOG, dialog);
 
-        app.wingman.ui.activities.ChatActivity.start(this, bundle);
-    }
-
-    private void startGroupChat(QBDialog dialog){
-        Bundle bundle = new Bundle();
-        bundle.putSerializable(app.wingman.ui.activities.ChatActivity.EXTRA_DIALOG, dialog);
-
-        app.wingman.ui.activities.ChatActivity.start(this, bundle);
-    }
 }

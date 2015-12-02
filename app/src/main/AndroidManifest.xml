@@ -50,7 +50,10 @@
         <activity
             android:name=".ui.activities.DialogsActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
+
             android:screenOrientation="portrait" />
+
+
         <activity
             android:name=".ui.activities.ChatActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
@@ -98,6 +101,10 @@
             android:name="com.facebook.sdk.ApplicationId"
             android:value="@string/app_id" />
 
+
+        <activity android:name=".ui.activities.GroupDetail" />
+        <activity android:name=".ui.activities.AddtogroupActivity" />
+
         <activity android:name=".ui.activities.CreateGroup" />
         <activity android:name=".ui.activities.GroupsActivity">
             <intent-filter>
@@ -117,6 +124,7 @@
             android:name=".ui.activities.SearchActivity"
             android:label="@string/title_activity_search"
             android:launchMode="singleTop"
+
             android:theme="@style/AppTheme" />
         <activity
             android:name=".ui.activities.ConnectionsAndRequests"
@@ -126,6 +134,10 @@
             android:name=".ui.activities.Settings"
             android:label="@string/title_activity_settings"
             android:theme="@style/AppTheme"></activity>
+
+
+        <activity android:name=".ui.activities.ImageViewer"></activity>
+
     </application>
 
 </manifest>

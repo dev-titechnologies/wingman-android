@@ -192,6 +192,9 @@ public class GetMyLocation {
 		protected void onPostExecute(String s) {
 			super.onPostExecute(s);
 
+
+
+
 //			if (PreferencesUtils.getData("user logged", context).equals("0")){
 //
 //				Intent in = new Intent(context, LoginActivity.class);
@@ -201,6 +204,7 @@ public class GetMyLocation {
 //				Intent intent = new Intent(context, DialogsActivity.class);
 //				context.startActivity(intent);
 //			}
+
 
 //			QBLocation location = new QBLocation(ApplicationSingleton.LOCATION_ARRAY[0], ApplicationSingleton.LOCATION_ARRAY[1], s);
 //			QBLocations.createLocation(location, new QBEntityCallbackImpl<QBLocation>() {

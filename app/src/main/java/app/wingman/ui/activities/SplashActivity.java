@@ -21,6 +21,7 @@ import android.widget.Toast;
 import com.quickblox.core.QBEntityCallbackImpl;
 import com.quickblox.users.model.QBUser;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -34,6 +35,7 @@ import app.wingman.database.CommentsDataSource;
 import app.wingman.interfaces.ContactsQuery;
 import app.wingman.models.modelclass;
 import app.wingman.networks.Connecttoget;
+import app.wingman.pushnotifications.PlayServicesHelper;
 import app.wingman.settings.Urls;
 import app.wingman.utils.GetMyLocation;
 import app.wingman.utils.PreferencesUtils;
@@ -55,8 +57,11 @@ public class SplashActivity extends app.wingman.ui.activities.BaseActivity imple
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
-         obj=new CommentsDataSource(SplashActivity.this);
+        obj=new CommentsDataSource(SplashActivity.this);
         obj.open();
+
+
+        new getallData().execute();
         if(getFinelOcationPermissionRequest()){
             if(getLOcationPermissionRequest()){
 
@@ -125,9 +130,10 @@ public class SplashActivity extends app.wingman.ui.activities.BaseActivity imple
         return false;
     }
 
+
     /**
-    get all users
-      */
+     get all users
+     */
     public class RetrieveUsers extends AsyncTask<String,String,Boolean>{
 
 
@@ -144,74 +150,74 @@ public class SplashActivity extends app.wingman.ui.activities.BaseActivity imple
             try {
                 ApplicationSingleton.apiresult = Connecttoget.callJson(Urls.GET_USERS);
 
-               if( new JSONObject(ApplicationSingleton.apiresult).getInt("status")==1) {
-                   ApplicationSingleton.apiresultJSON = new JSONObject(ApplicationSingleton.apiresult).getJSONArray("userList");
-                   int size = ApplicationSingleton.apiresultJSON.length();
-                   for (int i = 0; i < size; i++) {
+                if( new JSONObject(ApplicationSingleton.apiresult).getInt("status")==1) {
+                    ApplicationSingleton.apiresultJSON = new JSONObject(ApplicationSingleton.apiresult).getJSONArray("userList");
+                    int size = ApplicationSingleton.apiresultJSON.length();
+                    for (int i = 0; i < size; i++) {
 
-                       if (phones.contains(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("mobile_no"))) {
-                           modelclass obj = new modelclass();
-                           obj.setUserName(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("name"));
-                           obj.setUserEmail(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("email"));
-                           obj.setUserId(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("chat_id"));
-                           obj.setGender(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("gender"));
+                        if (phones.contains(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("mobile_no"))) {
+                            modelclass obj = new modelclass();
+                            obj.setUserName(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("name"));
+                            obj.setUserEmail(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("email"));
+                            obj.setUserId(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("chat_id"));
+                            obj.setGender(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("gender"));
 
-                           JSONObject OBJ=new JSONObject();
-                           OBJ.put("profile_pic",ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("profile_pic"));
-                           OBJ.put("latitude",ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("latitude"));
-                           OBJ.put("longitude",ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("longitude"));
-                           OBJ.put("user_info",ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("user_info"));
-
-
-                               obj.setUserCustomData(OBJ.toString());
-                           obj.setUserPhone(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("mobile_no"));
-                           userList.add(obj);
-
-                       }
-                   }
-
-                   if (userList.size() > 0)
-                       obj.bulkInsertUserData(userList,SplashActivity.this);
-
-                   String USERID=PreferencesUtils.getData("userid", SplashActivity.this);
-                   ApplicationSingleton.apiresult = Connecttoget.callJson(Urls.GET_GROUPS);
-
-                   if(new JSONObject(ApplicationSingleton.apiresult).getInt("status")==1) {
-                       ApplicationSingleton.apiresultJSON = new JSONObject(ApplicationSingleton.apiresult).getJSONArray("data");
-                       size = ApplicationSingleton.apiresultJSON.length();
-                       userList.clear();
-                       for (int i = 0; i < size; i++) {
+                            JSONObject OBJ=new JSONObject();
+                            OBJ.put("profile_pic",ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("profile_pic"));
+                            OBJ.put("latitude",ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("latitude"));
+                            OBJ.put("longitude",ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("longitude"));
+                            OBJ.put("user_info",ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("user_info"));
 
 
-                           if ( ApplicationSingleton.apiresultJSON.getJSONObject(i).getJSONArray("userDetails").toString().contains("\"id\":\""+USERID+"\"")) {
-                               modelclass obj = new modelclass();
-                               obj.setGroupName(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("group_name"));
-                               obj.setGroupTags(ApplicationSingleton.apiresultJSON.getJSONObject(i).getJSONArray("tagDetails").toString());
-                               obj.setGroupid(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("group_qb_id"));
-                               obj.setAdminId(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("admin_id"));
-                               obj.setGroupUsers(ApplicationSingleton.apiresultJSON.getJSONObject(i).getJSONArray("userDetails").toString());
+                            obj.setUserCustomData(OBJ.toString());
+                            obj.setUserPhone(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("mobile_no"));
+                            userList.add(obj);
 
-                               userList.add(obj);
+                        }
+                    }
 
-                           }
-                       }
-                       if (userList.size() > 0)
-                           obj.bulkInsertGroupData(userList);
+                    if (userList.size() > 0)
+                        obj.bulkInsertUserData(userList,SplashActivity.this);
+
+                    String USERID=PreferencesUtils.getData("userid", SplashActivity.this);
+                    ApplicationSingleton.apiresult = Connecttoget.callJson(Urls.GET_GROUPS);
+
+                    if(new JSONObject(ApplicationSingleton.apiresult).getInt("status")==1) {
+                        ApplicationSingleton.apiresultJSON = new JSONObject(ApplicationSingleton.apiresult).getJSONArray("data");
+                        size = ApplicationSingleton.apiresultJSON.length();
+                        userList.clear();
+                        for (int i = 0; i < size; i++) {
+
+
+                            if ( ApplicationSingleton.apiresultJSON.getJSONObject(i).getJSONArray("userDetails").toString().contains("\"id\":\""+USERID+"\"")) {
+                                modelclass obj = new modelclass();
+                                obj.setGroupName(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("group_name"));
+                                obj.setGroupTags(ApplicationSingleton.apiresultJSON.getJSONObject(i).getJSONArray("tagDetails").toString());
+                                obj.setGroupid(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("group_qb_id"));
+                                obj.setAdminId(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("admin_id"));
+                                obj.setGroupUsers(ApplicationSingleton.apiresultJSON.getJSONObject(i).getJSONArray("userDetails").toString());
+
+                                userList.add(obj);
+
+                            }
+                        }
+                        if (userList.size() > 0)
+                            obj.bulkInsertGroupData(userList);
 
 
 
-                       return true;
+                        return true;
 
-                   }else{
+                    }else{
 
-                       ApplicationSingleton.apiresultMessage=new JSONObject(ApplicationSingleton.apiresult).getString("message");
+                        ApplicationSingleton.apiresultMessage=new JSONObject(ApplicationSingleton.apiresult).getString("message");
 
-                   }
+                    }
 
-               }else{
+                }else{
 
-                   ApplicationSingleton.apiresultMessage=new JSONObject(ApplicationSingleton.apiresult).getString("message");
-               }
+                    ApplicationSingleton.apiresultMessage=new JSONObject(ApplicationSingleton.apiresult).getString("message");
+                }
             }catch(JSONException e){
 
                 e.printStackTrace();
@@ -226,30 +232,30 @@ public class SplashActivity extends app.wingman.ui.activities.BaseActivity imple
 
 
 
-                    final QBUser user = new QBUser();
+                final QBUser user = new QBUser();
 
 
-                    user.setEmail(PreferencesUtils.getData("username", SplashActivity.this));
-                    user.setPassword(PreferencesUtils.getData("password", SplashActivity.this));
-                    ChatService.initIfNeed(SplashActivity.this);
+                user.setEmail(PreferencesUtils.getData("username", SplashActivity.this));
+                user.setPassword(PreferencesUtils.getData("password", SplashActivity.this));
+                ChatService.initIfNeed(SplashActivity.this);
 
-                    ChatService.getInstance().login(user, new QBEntityCallbackImpl() {
+                ChatService.getInstance().login(user, new QBEntityCallbackImpl() {
 
-                        @Override
-                        public void onSuccess() {
+                    @Override
+                    public void onSuccess() {
 
-                            Intent in = new Intent(SplashActivity.this, DialogsActivity.class);
-                            startActivity(in);
+                        Intent in = new Intent(SplashActivity.this, DialogsActivity.class);
+                        startActivity(in);
 
-                        }
+                    }
 
-                        @Override
-                        public void onError(List errors) {
+                    @Override
+                    public void onError(List errors) {
 
-                            ApplicationSingleton.ShowFailedAlert(SplashActivity.this, "Fetching Message list failed " + errors.toString());
+                        ApplicationSingleton.ShowFailedAlert(SplashActivity.this, "Fetching Message list failed " + errors.toString());
 
-                        }
-                    });
+                    }
+                });
 
 
             }else{
@@ -334,6 +340,7 @@ public class SplashActivity extends app.wingman.ui.activities.BaseActivity imple
     }
 
 
+
     /**
      * user data will be updated to server from splash screen for location as well as device updates
      */
@@ -415,5 +422,32 @@ public class SplashActivity extends app.wingman.ui.activities.BaseActivity imple
                 ApplicationSingleton.ShowFailedAlert(SplashActivity.this,message);
             }
         }
+    }
+
+    /**
+     * to get all tags from server
+     */
+    public  class getallData extends AsyncTask<String, Integer, String> {
+
+        @Override
+        protected String doInBackground(String... params) {
+            String gettag= Connecttoget.callJson(Urls.GET_TAGS);
+            try {
+                JSONObject alltagarray = new JSONObject(gettag);
+                if(alltagarray.getInt("status")==1){
+                    JSONArray tags = alltagarray.getJSONArray("data");
+
+                    PreferencesUtils.saveData("ALLTAGS", tags.toString(), getApplicationContext());}
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+
+
+            return null;
+        }
+
+
     }
 }

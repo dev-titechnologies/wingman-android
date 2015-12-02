@@ -22,6 +22,13 @@ public class Urls {
     public static String SETREADSTATUSINVITATION=PARENT_URL+"group/readInvitation";
     public static String RESPOND_TO_INVITATION=PARENT_URL+"group/manageInvitation";
 
+
     public static String GET_TAGS=PARENT_URL+"tag/list";
+
+
+    public static String ADDUSERGRP=PARENT_URL+"group/inviteUser";
+    public static String CREATEGROUP=PARENT_URL+"group/create";
+    public static String GETYOURGROUPS=PARENT_URL+"group/groupList";
+    public static String GETNAMES=PARENT_URL+"user/getUserNames";
 
 }

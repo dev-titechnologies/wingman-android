@@ -13,6 +13,7 @@ import android.content.IntentFilter;
 import android.graphics.Color;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.NavigationView;
@@ -35,22 +36,22 @@ import com.quickblox.chat.model.QBDialog;
 import com.quickblox.core.QBEntityCallbackImpl;
 
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
+
 import app.wingman.ApplicationSingleton;
 import app.wingman.R;
-import app.wingman.core.Chat;
-import app.wingman.core.ChatService;
+
+import app.wingman.networks.Connecttoget;
 import app.wingman.pushnotifications.Consts;
-import app.wingman.pushnotifications.PlayServicesHelper;
-import app.wingman.ui.activities.*;
-import app.wingman.ui.activities.ChatActivity;
-import app.wingman.ui.adapters.DialogsAdapter;
 
-import app.wingman.utils.GetMyLocation;
 
+import app.wingman.settings.Urls;
 import app.wingman.utils.PreferencesUtils;
 import jp.co.recruit_lifestyle.android.widget.WaveSwipeRefreshLayout;
 
@@ -81,7 +82,7 @@ public class DialogsActivity extends BaseActivity {
         PreferencesUtils.saveData("callfromgroup", "false", getApplicationContext());
 
         playServicesHelper = new app.wingman.pushnotifications.PlayServicesHelper(this);
-
+Log.e("regId",playServicesHelper.regId);
         dialogsListView = (ListView) findViewById(R.id.roomsList);
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
 
@@ -96,6 +97,7 @@ public class DialogsActivity extends BaseActivity {
                 }
             }
         });
+        progressBar.setVisibility(View.VISIBLE);
         // Register to receive push notifications events
         //
         LocalBroadcastManager.getInstance(this).registerReceiver(mPushReceiver,
@@ -205,7 +207,7 @@ public class DialogsActivity extends BaseActivity {
     }
 
     public void getDialogs(){
-        progressBar.setVisibility(View.VISIBLE);
+
 
         // Get dialogs
         //
@@ -412,6 +414,34 @@ public class DialogsActivity extends BaseActivity {
 //    }
 
 
-
+//    public  class getallData extends AsyncTask<String, Integer, String> {
+//
+//        @Override
+//        protected String doInBackground(String... params) {
+//
+//
+//
+//
+//            String gettag= Connecttoget.callJsonWithparams(Urls.GETNAMES);
+//            try {
+//                JSONObject alltagarray = new JSONObject(gettag);
+//                if(alltagarray.getInt("status")==1){
+//                    JSONArray tags = alltagarray.getJSONArray("data");
+//                    Log.e("get tag ",tags.toString());
+//                    PreferencesUtils.saveData("ALLTAGS", tags.toString(), getApplicationContext());}
+//                else{
+//                    Toast.makeText(getApplicationContext(),"ERROR FROM SERVER.!!",2000).show();
+//                }
+//            } catch (JSONException e) {
+//                e.printStackTrace();
+//            }
+//
+//
+//
+//            return null;
+//        }
+//
+//
+//    }
 
 }

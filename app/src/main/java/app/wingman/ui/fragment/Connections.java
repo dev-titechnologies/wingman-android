@@ -6,8 +6,12 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+
+import android.util.Log;
+
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,19 +20,36 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 
+import com.quickblox.chat.QBChatService;
+import com.quickblox.chat.QBGroupChat;
+import com.quickblox.chat.QBGroupChatManager;
+import com.quickblox.chat.listeners.QBParticipantListener;
 import com.quickblox.chat.model.QBDialog;
+import com.quickblox.chat.model.QBPresence;
 import com.quickblox.core.QBEntityCallbackImpl;
+import com.quickblox.core.request.QBRequestUpdateBuilder;
+
+
+import org.jivesoftware.smack.SmackException;
+import org.jivesoftware.smack.XMPPException;
+import org.jivesoftware.smackx.muc.DiscussionHistory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import app.wingman.ApplicationSingleton;
 import app.wingman.R;
+
+
+
 import app.wingman.database.CommentsDataSource;
 import app.wingman.models.modelclass;
-import app.wingman.ui.activities.ChatActivity;
+
 import app.wingman.ui.adapters.ConnectionsAdapter;
+
 import app.wingman.utils.GetMyLocation;
+
 import app.wingman.utils.PreferencesUtils;
 
 
@@ -73,7 +94,7 @@ public class Connections extends Fragment {
         // Get dialogs
         //
 
-        if( searchclassChecker=true){
+        if( searchclassChecker==true){
 
             try {
                 CommentsDataSource obj = new CommentsDataSource(getActivity());
@@ -129,17 +150,19 @@ public class Connections extends Fragment {
         }
     }
 
-
+    private QBGroupChatManager groupChatManager;
+    private QBGroupChat groupChat;
     void buildListView(List<QBDialog> dialogs){
         final app.wingman.ui.adapters.DialogsAdapter adapter = new app.wingman.ui.adapters.DialogsAdapter(dialogs, getActivity());
         groupsListView.setAdapter(adapter);
-
+adapter.notifyDataSetChanged();
         // choose dialog
-        //
+
+
         groupsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                QBDialog selectedDialog = (QBDialog) adapter.getItem(position);
+                final QBDialog selectedDialog = (QBDialog) adapter.getItem(position);
 
                 Bundle bundle = new Bundle();
                 bundle.putSerializable(app.wingman.ui.activities.ChatActivity.EXTRA_DIALOG, selectedDialog);
@@ -151,13 +174,40 @@ public class Connections extends Fragment {
 //                getActivity(). finish();
 
 
-                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.MyAlertDialogStyle);
+                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
                 builder.setTitle("Exit Group");
 
                 builder.setMessage("Do you really want to leave this group...");
-                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                AlertDialog.Builder ok = builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+//leaving a group
+                        QBDialog dialog1 = new QBDialog();
+                        dialog1.setDialogId(selectedDialog.getDialogId());//group id for leav
+
+
+                        QBRequestUpdateBuilder requestBuilder = new QBRequestUpdateBuilder();
+
+
+
+                        requestBuilder.pullAll("occupants_ids", PreferencesUtils.getData("user_id",getActivity())); // Remove yourself from group (user with ID 22)
+
+                        QBGroupChatManager groupChatManager = QBChatService.getInstance().getGroupChatManager();
+                        groupChatManager.updateDialog(dialog1, requestBuilder, new QBEntityCallbackImpl<QBDialog>() {
+                            @Override
+                            public void onSuccess(QBDialog dialog, Bundle args) {
+                                Log.e("group exit  ","success"+dialog.toString());
+                                getDialogs();
+                                adapter.notifyDataSetChanged();
+                            }
+
+                            @Override
+                            public void onError(List<String> errors) {
+                                Log.e("group exit","error"+errors.toString());
+
+                            }
+                        });
 
                     }
                 });

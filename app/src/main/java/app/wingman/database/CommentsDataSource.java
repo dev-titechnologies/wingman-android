@@ -35,8 +35,10 @@ public class CommentsDataSource {
 	  // Database fields
 	  private SQLiteDatabase database;
 	  private MySQLiteHelper dbHelper;
-	  private String[] allColumnsCategory = { MySQLiteHelper.CHAT_ID,
+
+	  private String[] usercolumns = { MySQLiteHelper.CHAT_ID,
 	      MySQLiteHelper.USER_NAME,MySQLiteHelper.USER_CUSTOMDATA,MySQLiteHelper.USER_EMAIL,MySQLiteHelper.USER_PHONE,MySQLiteHelper.GENDER};
+
 	private String[] ColumnsCategory = { MySQLiteHelper.GROUP_ID,MySQLiteHelper.GROUP_NAME,MySQLiteHelper.USERS,MySQLiteHelper.ADMIN_ID,MySQLiteHelper.TAGS
 			};
 
@@ -219,8 +221,13 @@ public class CommentsDataSource {
 	 public List<modelclass> getAllUsers() {
 		    List<modelclass> comments = new ArrayList<modelclass>();
 
-		    Cursor cursor = database.query(MySQLiteHelper.TABLE_USER,
-		        ColumnsCategory, null, null, null, null, null);
+		 String selectQuery = "SELECT  * FROM " + MySQLiteHelper.TABLE_USER;
+		 Cursor cursor = database.rawQuery(selectQuery,null);
+
+
+
+//		 Cursor cursor = database.query(MySQLiteHelper.TABLE_USER,
+//					usercolumns, null, null, null, null, null);
 
 		    cursor.moveToFirst();
 		    while (!cursor.isAfterLast()) {
@@ -283,7 +290,6 @@ used for searching names
 
 					try {
 
-						System.out.println("distance cursor"+ cursor.getString(0)+cursor.getString(1)+cursor.getString(3));
 						float[] results = new float[1];
 
 						if (distance_unit.equals("km"))
@@ -291,13 +297,15 @@ used for searching names
 							else
 							distance = distance * 1609.344;  // for miles
 
+
 						JSONObject OBJ = new JSONObject(cursor.getString(3).toString());
+
 
 						Location.distanceBetween((latitude),(longitude),
 								Double.parseDouble(OBJ.getString("latitude")),
 								Double.parseDouble(OBJ.getString("longitude")), results);
 
-						System.out.println("distance between"+OBJ.getString("latitude")+" and "+OBJ.getString("longitude")+" = "+results[0]);
+						//System.out.println("distance between"+OBJ.getString("latitude")+" and "+OBJ.getString("longitude")+" = "+results[0]);
 
 							if (results[0] < distance) {
 

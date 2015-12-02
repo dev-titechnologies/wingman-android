@@ -694,11 +694,6 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
 
 
 
-
-
-            try {
-
-
                     // Go to Dialogs screen
                     //
 
@@ -731,20 +726,14 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
 
                             } catch (JSONException e) {
                                 e.printStackTrace();
+                            }catch(Exception e) {
+                                e.printStackTrace();
                             }
 
+                             if(resultflag)
+                                     return true;
 
-
-
-            }catch
-            (Exception e) {
-                e.printStackTrace();
-            }
-
-             if(resultflag)
-            return true;
-
-                 return false;
+                            return false;
         }
         @Override
         protected void onPostExecute(Boolean s) {
@@ -795,6 +784,7 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
                 obj.put("password",MessageDigest.getInstance("MD5").digest(user.getPassword().getBytes()));
                 obj.put("mobile_no",user.getPhone());
                 obj.put("chat_id",user.getId());
+                PreferencesUtils.saveData("user_id", user.getId().toString(), LoginActivity.this);
                 obj.put("device_os","android");
                 obj.put("gcm_reg_token","android");
                 obj.put("country_code",LoginActivity.this.getResources().getConfiguration().locale.getCountry());
@@ -901,6 +891,7 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
         PreferencesUtils.saveData("password", password, LoginActivity.this);
         PreferencesUtils.saveData("userid", ID, LoginActivity.this);
         PreferencesUtils.saveData("user logged","1",LoginActivity.this);
+
     }
     private boolean isEmailValid(String email) {
         //TODO: Replace this with your own logic
@@ -1421,11 +1412,54 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
 
                         return true;
 
-                    }else{
+                    }else {
 
-                        ApplicationSingleton.apiresultMessage=new JSONObject(ApplicationSingleton.apiresult).getString("message");
-
+                        ApplicationSingleton.apiresultMessage = new JSONObject(ApplicationSingleton.apiresult).getString("message");
                     }
+
+//                    if (mEmailSignInButton.getText().toString().equals(getResources().getString(R.string.action_sign_in))) {
+//
+//
+//                        final QBUser user = new QBUser();
+//
+//
+//                        user.setEmail(mEmailView.getText().toString());
+//                        user.setPassword(mPasswordView.getText().toString());
+//                        ChatService.initIfNeed(LoginActivity.this);
+//
+//                        ChatService.getInstance().login(user, new QBEntityCallbackImpl() {
+//
+//                            @Override
+//                            public void onSuccess() {
+//                                // Go to Dialogs screen
+//                                //
+//
+//                                Intent intent = new Intent(LoginActivity.this, DialogsActivity.class);
+//                                startActivity(intent);
+//
+//                                finish();
+//                                Log.e("login success", "login success");
+//
+//                            }
+//
+//                            @Override
+//                            public void onError(List errors) {
+//                                AlertDialog.Builder dialog = new AlertDialog.Builder(LoginActivity.this);
+//                                dialog.setMessage("chat login errors: " + errors.toString()).create().show();
+//
+//                            }
+//                        });
+//
+//
+//
+//
+//
+//                    }
+//                    else{
+//                        Intent intent = new Intent(LoginActivity.this, PickContact.class);
+//                        startActivity(intent);
+//
+//                    }
 
                 }else{
 

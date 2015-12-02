@@ -29,12 +29,17 @@ public class GroupChatImpl extends QBMessageListenerImpl<QBGroupChat> implements
     private static final String TAG = GroupChatImpl.class.getSimpleName();
 
     private app.wingman.ui.activities.ChatActivity chatActivity;
+    private app.wingman.ui.fragment.Connections connections;
     private app.wingman.ui.activities.DialogsActivity dialogActivity;
     private QBGroupChatManager groupChatManager;
     private QBGroupChat groupChat;
 
     public GroupChatImpl(app.wingman.ui.activities.ChatActivity chatActivity) {
         this.chatActivity = chatActivity;
+    }
+
+    public GroupChatImpl(app.wingman.ui.fragment.Connections connections) {
+        this.connections = connections;
     }
 
     public void joinGroupChat(QBDialog dialog, QBEntityCallback callback){
@@ -55,8 +60,10 @@ public class GroupChatImpl extends QBMessageListenerImpl<QBGroupChat> implements
     private void join(final QBGroupChat groupChat, final QBEntityCallback callback) {
         DiscussionHistory history = new DiscussionHistory();
         history.setMaxStanzas(0);
-
+if(chatActivity!=null)
         Toast.makeText(chatActivity, "Joining room...", Toast.LENGTH_LONG).show();
+
+
 
         groupChat.join(history, new QBEntityCallbackImpl() {
             @Override
@@ -77,15 +84,16 @@ public class GroupChatImpl extends QBMessageListenerImpl<QBGroupChat> implements
 
             @Override
             public void onError(final List list) {
+
+
+
+                Log.e("Could not join chat, errors:", Arrays.toString(list.toArray()));
                 chatActivity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         callback.onError(list);
                     }
                 });
-
-
-                Log.w("Could not join chat, errors:", Arrays.toString(list.toArray()));
             }
         });
     }
