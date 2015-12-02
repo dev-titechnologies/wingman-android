@@ -2,8 +2,6 @@ package app.wingman.ui.activities;
 
 import android.Manifest;
 import android.annotation.TargetApi;
-import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -17,19 +15,10 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
-import com.quickblox.auth.QBAuth;
-import com.quickblox.auth.model.QBSession;
-import com.quickblox.core.Consts;
 import com.quickblox.core.QBEntityCallbackImpl;
-
-import com.quickblox.core.exception.BaseServiceException;
-import com.quickblox.core.exception.QBResponseException;
-import com.quickblox.core.request.QBPagedRequestBuilder;
-import com.quickblox.users.QBUsers;
 import com.quickblox.users.model.QBUser;
 
 import org.json.JSONException;
@@ -74,10 +63,10 @@ public class SplashActivity extends app.wingman.ui.activities.BaseActivity imple
                 GetMyLocation obj = new GetMyLocation(SplashActivity.this);
                 obj.getMyLocation();
             }else
-                ApplicationSingleton.ShowWarningAlert(getApplicationContext(),"Sorry please turn location permission in your device for wingman");
+                ApplicationSingleton.ShowWarningAlert(SplashActivity.this,"Sorry please turn location permission in your device for wingman");
 
         }else
-            ApplicationSingleton.ShowWarningAlert(getApplicationContext(),"Sorry please turn location permission in your device for wingman");
+            ApplicationSingleton.ShowWarningAlert(SplashActivity.this,"Sorry please turn location permission in your device for wingman");
 
 
         getSupportLoaderManager().initLoader(1, null, SplashActivity.this);
@@ -138,78 +127,135 @@ public class SplashActivity extends app.wingman.ui.activities.BaseActivity imple
 
     /**
     get all users
-     @param page-pagecount
-     */
-    public  void retrieveAllUsersFromPage(final int page){
+      */
+    public class RetrieveUsers extends AsyncTask<String,String,Boolean>{
 
 
 
-           final QBPagedRequestBuilder pagedRequestBuilder = new QBPagedRequestBuilder();
-            pagedRequestBuilder.setPage(page);
-            pagedRequestBuilder.setPerPage(100);
-            Toast.makeText(getApplicationContext(), "retrieving users", Toast.LENGTH_LONG).show();
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+
+        }
+
+        @Override
+        protected Boolean doInBackground(String... strings) {
+
+            try {
+                ApplicationSingleton.apiresult = Connecttoget.callJson(Urls.GET_USERS);
+
+               if( new JSONObject(ApplicationSingleton.apiresult).getInt("status")==1) {
+                   ApplicationSingleton.apiresultJSON = new JSONObject(ApplicationSingleton.apiresult).getJSONArray("userList");
+                   int size = ApplicationSingleton.apiresultJSON.length();
+                   for (int i = 0; i < size; i++) {
+
+                       if (phones.contains(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("mobile_no"))) {
+                           modelclass obj = new modelclass();
+                           obj.setUserName(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("name"));
+                           obj.setUserEmail(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("email"));
+                           obj.setUserId(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("chat_id"));
+                           obj.setGender(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("gender"));
+
+                           JSONObject OBJ=new JSONObject();
+                           OBJ.put("profile_pic",ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("profile_pic"));
+                           OBJ.put("latitude",ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("latitude"));
+                           OBJ.put("longitude",ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("longitude"));
+                           OBJ.put("user_info",ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("user_info"));
 
 
-            // You have successfully created the session
-            //
-            // Now you can use QuickBlox API!
+                               obj.setUserCustomData(OBJ.toString());
+                           obj.setUserPhone(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("mobile_no"));
+                           userList.add(obj);
 
-            QBUsers.getUsers(pagedRequestBuilder, new QBEntityCallbackImpl<ArrayList<QBUser>>() {
+                       }
+                   }
 
-                int userNumber = 1;
+                   if (userList.size() > 0)
+                       obj.bulkInsertUserData(userList,SplashActivity.this);
 
-                @Override
-                public void onSuccess(ArrayList<QBUser> users, Bundle params) {
+                   String USERID=PreferencesUtils.getData("userid", SplashActivity.this);
+                   ApplicationSingleton.apiresult = Connecttoget.callJson(Urls.GET_GROUPS);
+
+                   if(new JSONObject(ApplicationSingleton.apiresult).getInt("status")==1) {
+                       ApplicationSingleton.apiresultJSON = new JSONObject(ApplicationSingleton.apiresult).getJSONArray("data");
+                       size = ApplicationSingleton.apiresultJSON.length();
+                       userList.clear();
+                       for (int i = 0; i < size; i++) {
+
+
+                           if ( ApplicationSingleton.apiresultJSON.getJSONObject(i).getJSONArray("userDetails").toString().contains("\"id\":\""+USERID+"\"")) {
+                               modelclass obj = new modelclass();
+                               obj.setGroupName(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("group_name"));
+                               obj.setGroupTags(ApplicationSingleton.apiresultJSON.getJSONObject(i).getJSONArray("tagDetails").toString());
+                               obj.setGroupid(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("group_qb_id"));
+                               obj.setAdminId(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("admin_id"));
+                               obj.setGroupUsers(ApplicationSingleton.apiresultJSON.getJSONObject(i).getJSONArray("userDetails").toString());
+
+                               userList.add(obj);
+
+                           }
+                       }
+                       if (userList.size() > 0)
+                           obj.bulkInsertGroupData(userList);
 
 
 
-                    int size = users.size();
-                    for (int i = 0; i < size; i++) {
+                       return true;
 
-                        if (phones.contains(users.get(i).getPhone())) {
-                            modelclass obj = new modelclass();
-                            obj.setUserName(users.get(i).getFullName().toLowerCase().trim());
-                            obj.setUserEmail(users.get(i).getEmail());
-                            obj.setUserId(users.get(i).getId().toString());
-                            if(users.get(i).getCustomData()==null)
-                                obj.setUserCustomData("{\"user_info\":\"hii I am using Wingman\",\"profile_pic\":\"\"}");
-                            else
-                            obj.setUserCustomData(users.get(i).getCustomData());
-                            obj.setUserPhone(users.get(i).getPhone());
-                            userList.add(obj);
+                   }else{
+
+                       ApplicationSingleton.apiresultMessage=new JSONObject(ApplicationSingleton.apiresult).getString("message");
+
+                   }
+
+               }else{
+
+                   ApplicationSingleton.apiresultMessage=new JSONObject(ApplicationSingleton.apiresult).getString("message");
+               }
+            }catch(JSONException e){
+
+                e.printStackTrace();
+            }
+            return false;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean s) {
+            super.onPostExecute(s);
+            if(s){
+
+
+
+                    final QBUser user = new QBUser();
+
+
+                    user.setEmail(PreferencesUtils.getData("username", SplashActivity.this));
+                    user.setPassword(PreferencesUtils.getData("password", SplashActivity.this));
+                    ChatService.initIfNeed(SplashActivity.this);
+
+                    ChatService.getInstance().login(user, new QBEntityCallbackImpl() {
+
+                        @Override
+                        public void onSuccess() {
+
+                            Intent in = new Intent(SplashActivity.this, DialogsActivity.class);
+                            startActivity(in);
 
                         }
-                    }
+
+                        @Override
+                        public void onError(List errors) {
+
+                            ApplicationSingleton.ShowFailedAlert(SplashActivity.this, "Fetching Message list failed " + errors.toString());
+
+                        }
+                    });
 
 
-                    userNumber = users.size() + 1;
-                    int totalEntries = params.getInt(Consts.TOTAL_ENTRIES);
-                    System.out.println("total user"+userNumber+ " : "+"total- "+totalEntries);
-
-                    if (userNumber < totalEntries) {
-
-                        retrieveAllUsersFromPage(page + 1);
-                    } else{
-
-                        if (userList.size() > 0)
-                            obj.bulkInsertUserData(userList);
-                        Intent in=new Intent(SplashActivity.this,DialogsActivity.class);
-                        startActivity(in);
-                    }
-                }
-
-                @Override
-                public void onError(List<String> errors) {
-
-                    ApplicationSingleton.ShowFailedAlert(getApplicationContext(),"Sorry some error occurred on loading the app"+errors.toString());
-
-                }
-            });
-
-
-
-
-
+            }else{
+                ApplicationSingleton.ShowFailedAlert(SplashActivity.this,ApplicationSingleton.apiresultMessage);
+            }
+        }
     }
 
     @Override
@@ -240,7 +286,7 @@ public class SplashActivity extends app.wingman.ui.activities.BaseActivity imple
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
 
 
-        Toast.makeText(getApplicationContext(),"contacts loaded",Toast.LENGTH_LONG).show();
+        Toast.makeText(SplashActivity.this,"contacts loaded",Toast.LENGTH_LONG).show();
         if (loader.getId() == ContactsQuery.QUERY_ID) {
 
 
@@ -261,8 +307,10 @@ public class SplashActivity extends app.wingman.ui.activities.BaseActivity imple
 
                 if(getLOcationPermissionRequest() && getFinelOcationPermissionRequest()){
 
-                   Intent in =new Intent(SplashActivity.this,LoginActivity.class);
+
+                    Intent in = new Intent(SplashActivity.this, LoginActivity.class);
                     startActivity(in);
+
 
                 }
                 else
@@ -272,7 +320,7 @@ public class SplashActivity extends app.wingman.ui.activities.BaseActivity imple
 
             } else {
 
-                new  QbSignin(PreferencesUtils.getData("password", SplashActivity.this),PreferencesUtils.getData("username", SplashActivity.this)).execute();
+                new UpdateUserDataToServer(PreferencesUtils.getData("password", SplashActivity.this),PreferencesUtils.getData("username", SplashActivity.this)).execute();
             }
 
         }
@@ -286,12 +334,16 @@ public class SplashActivity extends app.wingman.ui.activities.BaseActivity imple
     }
 
 
-    public  class QbSignin extends AsyncTask<String,String,Boolean> {
+    /**
+     * user data will be updated to server from splash screen for location as well as device updates
+     */
+
+    public  class UpdateUserDataToServer extends AsyncTask<String,String,Boolean> {
 
 
         String email,password;
         String message;
-        public QbSignin(String pwd,String emaill) {
+        public UpdateUserDataToServer(String pwd, String emaill) {
 
 
             password=pwd;
@@ -314,16 +366,7 @@ public class SplashActivity extends app.wingman.ui.activities.BaseActivity imple
 
 
             try {
-                QBUser user;
 
-                QBAuth.createSession();
-
-                String password = inputUser.getPassword();
-                user = QBUsers.signIn(inputUser);
-
-                String token = QBAuth.getBaseService().getToken();
-
-                user.setPassword(password);
 
                 JSONObject obj=new JSONObject();
 
@@ -340,19 +383,15 @@ public class SplashActivity extends app.wingman.ui.activities.BaseActivity imple
                 obj.put("latitude",ApplicationSingleton.LOCATION_ARRAY[0]);
                 obj.put("longitude",ApplicationSingleton.LOCATION_ARRAY[1]);
                 obj.put("street", ApplicationSingleton.USER_STREET);
-                obj.put("user_id",user.getId());
+                obj.put("user_id",PreferencesUtils.getData("userid", SplashActivity.this));
                 System.out.println("passing"+obj.toString());
-                String result= Connecttoget.callJsonWithparams(Urls.USER_UPDATE, obj.toString());
+                ApplicationSingleton.apiresult= Connecttoget.callJsonWithparams(Urls.USER_UPDATE, obj.toString());
 
-                if(new JSONObject(result).getString("status").equals("1"))
+                if(new JSONObject(ApplicationSingleton.apiresult).getInt("status")==1)
 
                     return true;
                 else
-                    message=new JSONObject(result).getString("message");
-            }catch(QBResponseException e) {
-                e.printStackTrace();
-            }catch(BaseServiceException e) {
-                e.printStackTrace();
+                    message=new JSONObject(ApplicationSingleton.apiresult).getString("message");
             }catch(JSONException e) {
                 e.printStackTrace();
             }
@@ -367,7 +406,7 @@ public class SplashActivity extends app.wingman.ui.activities.BaseActivity imple
 
                 if (getLOcationPermissionRequest() && getFinelOcationPermissionRequest()) {
 
-                    retrieveAllUsersFromPage(1);
+                    new RetrieveUsers().execute();
                 } else {
                     ApplicationSingleton.ShowWarningAlert(SplashActivity.this, "Please enable location settings for this app");
                 }

@@ -128,33 +128,45 @@ public class DialogsActivity extends BaseActivity {
 
                 //Closing drawer on item click
                 drawerLayout.closeDrawers();
-
+                Intent groups;
                 //Check to see which item was being clicked and perform appropriate action
                 switch (menuItem.getItemId()){
 
 
                     //Replacing the main content with ContentFragment Which is our Inbox View;
                     case R.id.Connect:
-                        Toast.makeText(getApplicationContext(),"Connect Selected", Toast.LENGTH_SHORT).show();
+
+                        ApplicationSingleton.CALLINGREQUESTS=false;
+                         groups = new Intent(getApplicationContext(),ConnectionsAndRequests.class);
+                        startActivity(groups);
 
                         return true;
 
                     // For rest of the options we just show a toast on click
 
                     case R.id.Request:
-                        Toast.makeText(getApplicationContext(),"Request Selected",Toast.LENGTH_SHORT).show();
+                       ApplicationSingleton.CALLINGREQUESTS=true;
+                         groups = new Intent(getApplicationContext(),ConnectionsAndRequests.class);
+                        startActivity(groups);
+
                         return true;
                     case R.id.Groups:
 
                         PreferencesUtils.saveData("callfromgroup","true",getApplicationContext());
-                         Intent groups = new Intent(getApplicationContext(),GroupsActivity.class);
+                          groups = new Intent(getApplicationContext(),GroupsActivity.class);
                         startActivity(groups);
                         return true;
+
                     case R.id.Messages:
                         Toast.makeText(getApplicationContext(),"Messages Selected",Toast.LENGTH_SHORT).show();
                         return true;
                     case R.id.CreateGroup:
                         Toast.makeText(getApplicationContext(),"CreateGroup Selected",Toast.LENGTH_SHORT).show();
+                        return true;
+                    case R.id.Settings:
+                        groups = new Intent(getApplicationContext(),Settings.class);
+                        startActivity(groups);
+
                         return true;
                     default:
                         Toast.makeText(getApplicationContext(),"Somethings Wrong",Toast.LENGTH_SHORT).show();

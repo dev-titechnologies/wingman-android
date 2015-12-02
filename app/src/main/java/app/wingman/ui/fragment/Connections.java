@@ -28,6 +28,7 @@ import app.wingman.database.CommentsDataSource;
 import app.wingman.models.modelclass;
 import app.wingman.ui.activities.ChatActivity;
 import app.wingman.ui.adapters.ConnectionsAdapter;
+import app.wingman.utils.GetMyLocation;
 import app.wingman.utils.PreferencesUtils;
 
 
@@ -78,8 +79,11 @@ public class Connections extends Fragment {
                 CommentsDataSource obj = new CommentsDataSource(getActivity());
                 obj.open();
 
-
-                ArrayList<modelclass> listt=(obj.getSearchResult(key.toLowerCase()));
+               String gender= PreferencesUtils.getData("gender",getActivity());
+                String distanceunit= PreferencesUtils.getData("distance",getActivity());
+                double distance= Double.parseDouble(PreferencesUtils.getData("distancevalue",getActivity()));
+                double loc[]=new GetMyLocation(getActivity()).getMyLocationn();
+                ArrayList<modelclass> listt=(obj.getSearchResult(key.toLowerCase(),loc[0],loc[1],distance,distanceunit,gender));
                 if(listt.size()>0) {
                     connectionsList.setVisibility(View.VISIBLE);
                     groupsListView.setVisibility(View.GONE);

@@ -23,6 +23,12 @@ import android.view.View;
 import com.quickblox.core.QBSettings;
 import com.quickblox.users.model.QBUser;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+
+import app.wingman.models.modelclass;
 import app.wingman.utils.PreferencesUtils;
 import cn.pedant.SweetAlert.SweetAlertDialog;
 
@@ -40,9 +46,23 @@ public class ApplicationSingleton extends Application {
 
     public static final String DOWNLOAD_IMAGE_PATH = "/sdcard/flashCropped/";
     public static final String DOWNLOAD_IMAGE_PATH_External = "/sdcard/flashCropped/";
-//    public static final String QB_APP_ID = "29673";
-//    public static final String QB_AUTH_KEY = "Tt2Gh-kBe6bXKUL";
-//    public static final String QB_AUTH_SECRET = "O9gbvOgTCsUrCgF";
+
+// for json parsing
+    public static String apiresult="";
+    public static JSONArray apiresultJSON=null;
+    public static JSONObject apiresultJSONOBJECT=new JSONObject();
+    public static modelclass responseobj=new modelclass();
+    public static ArrayList<modelclass> objList=new ArrayList<>();
+    public static String apiresultMessage=null;
+
+
+    // for fragment interaction
+
+    public static boolean CALLINGREQUESTS=false;
+    public static String UserTag=null;
+    public static String GroupTag=null;
+    public static String RESPONSETAG=null;  // NOTIFIES WHETHER A USER CCEPTS OR REJECT A REQUEST
+
 
 
     public static final String PREFS_NAME = "WingManPref";
@@ -150,11 +170,16 @@ public class ApplicationSingleton extends Application {
     }
     public static void ShowFailedAlert(Context context, String message) {
 
+        try {
 
-        new SweetAlertDialog(context, SweetAlertDialog.ERROR_TYPE)
-                .setTitleText("SORRY")
-                .setContentText(message)
-                .show();
+            new SweetAlertDialog(context, SweetAlertDialog.ERROR_TYPE)
+                    .setTitleText("SORRY")
+                    .setContentText(message)
+                    .show();
+        }catch(Exception e){
+
+            e.printStackTrace();
+        }
 
     }
     public static void ShowWarningAlert(Context context, String message) {

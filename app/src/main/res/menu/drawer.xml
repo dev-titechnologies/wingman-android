@@ -33,6 +33,11 @@
             android:checked="false"
             android:icon="@drawable/ic_action_new"
             android:title="@string/CreateGroup" />
+        <item
+            android:id="@+id/Settings"
+            android:checked="false"
+            android:icon="@drawable/ic_action_new"
+            android:title="@string/Settings" />
 
 
     </group>

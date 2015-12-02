@@ -47,6 +47,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -140,6 +142,8 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
     Button mEmailSignInButton;
     Button mEmailSignUpButton;
     Button fblogin;
+    RadioGroup gendergrp;
+    RadioButton mfemale,mmale;
 
     // for fb
 
@@ -162,7 +166,8 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
 
     int count=0;
     QBUser crntUser;
-
+    CommentsDataSource obj;
+    ArrayList<modelclass> userList = new ArrayList<modelclass>();
 
 
     @Override
@@ -171,10 +176,13 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
         setContentView(R.layout.activity_login2);
         // Set up the login form.
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
-        populateAutoComplete();
+
 
         mPasswordView = (EditText) findViewById(R.id.password);
         mUserName = (EditText) findViewById(R.id.editext_name);
+        gendergrp = (RadioGroup) findViewById(R.id.gendergrp);
+        mfemale = (RadioButton) findViewById(R.id.femaleradio);
+        mmale = (RadioButton) findViewById(R.id.maleradio);
         mPhone = (EditText) findViewById(R.id.editetxt_phone);
         fblogin=(Button)findViewById(R.id.fbsigninbtn);
         alertLayout=(LinearLayout)findViewById(R.id.user_layout);
@@ -241,6 +249,18 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
 
 
 
+            }
+        });
+        gendergrp.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup radioGroup, int i) {
+
+                if(radioGroup.getId()==R.id.femaleradio){
+
+                    PreferencesUtils.saveData("gender","female",LoginActivity.this);
+                }else if(radioGroup.getId()==R.id.maleradio){
+                    PreferencesUtils.saveData("gender","male",LoginActivity.this);
+                }
             }
         });
 
@@ -350,6 +370,7 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
 
         mUserName.setVisibility(View.VISIBLE);
         mPhone.setVisibility(View.VISIBLE);
+        gendergrp.setVisibility(View.VISIBLE);
         mEmailSignUpButton.setVisibility(View.GONE);
         mEmailSignInButton.setText(getResources().getString(R.string.btntxt_sign_up));
 
@@ -610,8 +631,32 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
+            final QBUser user = new QBUser();
 
-            new QbSignin(password,email).execute();
+
+            user.setEmail(email);
+            user.setPassword(password);
+            ChatService.initIfNeed(LoginActivity.this);
+
+            ChatService.getInstance().login(user, new QBEntityCallbackImpl() {
+
+                @Override
+                public void onSuccess() {
+
+
+                    saveUser( email, password, Integer.toString(user.getId()));
+                    new QbSignin(password,email).execute();
+
+                }
+
+                @Override
+                public void onError(List errors) {
+
+                    ApplicationSingleton.ShowFailedAlert(LoginActivity.this,errors.toString());
+
+                }
+            });
+
 
 
 
@@ -625,6 +670,9 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
 
         String email,password;
        String message;
+        QBUser user;
+        boolean resultflag=false;
+
         public QbSignin(String pwd,String emaill) {
 
 
@@ -634,72 +682,77 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
 
 
         }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+
+        }
+
         @Override
         protected Boolean doInBackground(String... strings) {
 
 
-            final QBUser inputUser = new QBUser();
 
-
-
-
-            inputUser.setEmail(email);
-            inputUser.setPassword(password);
 
 
             try {
-                QBUser user;
 
-                QBAuth.createSession();
 
-                String password = inputUser.getPassword();
-                user = QBUsers.signIn(inputUser);
+                    // Go to Dialogs screen
+                    //
 
-                String token = QBAuth.getBaseService().getToken();
+                            try {
+                                JSONObject obj = new JSONObject();
 
-                user.setPassword(password);
+                                obj.put("device_os", "android");
+                                obj.put("gcm_reg_token", "android");
+                                TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+                                String countryCode = tm.getSimCountryIso();
+                                if (countryCode.length() > 0)
+                                    obj.put("country_code", countryCode);
+                                else
+                                    obj.put("country_code", LoginActivity.this.getResources().getConfiguration().locale.getCountry());
+                                obj.put("device_id", android.provider.Settings.Secure.getString(LoginActivity.this.getContentResolver(),
+                                        android.provider.Settings.Secure.ANDROID_ID));
+                                obj.put("latitude", ApplicationSingleton.LOCATION_ARRAY[0]);
+                                obj.put("longitude", ApplicationSingleton.LOCATION_ARRAY[1]);
+                                obj.put("street", ApplicationSingleton.USER_STREET);
+                                obj.put("user_id", PreferencesUtils.getData("userid", LoginActivity.this));
+                                System.out.println("passing" + obj.toString());
+                                String result = Connecttoget.callJsonWithparams(Urls.USER_UPDATE, obj.toString());
 
-                JSONObject obj=new JSONObject();
+                                if (new JSONObject(result).getInt("status")==1)
 
-                obj.put("device_os","android");
-                obj.put("gcm_reg_token","android");
-                TelephonyManager tm = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
-                String countryCode = tm.getSimCountryIso();
-                if(countryCode.length()>0)
-                    obj.put("country_code",countryCode);
-                else
-                obj.put("country_code",LoginActivity.this.getResources().getConfiguration().locale.getCountry());
-                obj.put("device_id", android.provider.Settings.Secure.getString(LoginActivity.this.getContentResolver(),
-                        android.provider.Settings.Secure.ANDROID_ID));
-                obj.put("latitude",ApplicationSingleton.LOCATION_ARRAY[0]);
-                obj.put("longitude",ApplicationSingleton.LOCATION_ARRAY[1]);
-                obj.put("street", ApplicationSingleton.USER_STREET);
-                obj.put("user_id",user.getId());
-                System.out.println("passing"+obj.toString());
-                String result=Connecttoget.callJsonWithparams(Urls.USER_UPDATE, obj.toString());
+                                    resultflag=true;
+                                else
+                                    message = new JSONObject(result).getString("message");
 
-                if(new JSONObject(result).getString("status").equals("1"))
 
-                    return true;
-                else
-                    message=new JSONObject(result).getString("message");
-            }catch(QBResponseException e) {
-                e.printStackTrace();
-            }catch(BaseServiceException e) {
-                e.printStackTrace();
-            }catch(JSONException e) {
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+
+
+
+
+            }catch
+            (Exception e) {
                 e.printStackTrace();
             }
 
+             if(resultflag)
+            return true;
 
-            return false;
+                 return false;
         }
         @Override
         protected void onPostExecute(Boolean s) {
             super.onPostExecute(s);
             if(s) {
-                saveUser( email, password);
-               retrieveAllUsersFromPage(1);
+
+                new RetrieveUsers().execute();
+
             }else{
 
                 ApplicationSingleton.ShowFailedAlert(LoginActivity.this,message);
@@ -760,7 +813,7 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
 
                 String result=Connecttoget.callJsonWithparams(Urls.USER_SIGNUP, obj.toString());
 
-                if(new JSONObject(result).getString("status").equals("1"))
+                if (new JSONObject(result).getInt("status")==1)
 
                     return true;
                 else
@@ -784,8 +837,8 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
         protected void onPostExecute(Boolean s) {
             super.onPostExecute(s);
             if(s) {
-                saveUser( user.getEmail(), psswrd);
-               retrieveAllUsersFromPage(1);
+                saveUser( user.getEmail(), psswrd,Integer.toString(user.getId()));
+                new RetrieveUsers().execute();
             }else{
 
                 ApplicationSingleton.ShowFailedAlert(LoginActivity.this,message);
@@ -809,7 +862,7 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
                 obj.put("email",mEmailView.getText().toString());
             String result=Connecttoget.callJsonWithparams(Urls.USER_email_check, obj.toString());
 
-                if(new JSONObject(result).getString("status").equals("1")) {
+                if (new JSONObject(result).getInt("status")==1){
                     if (new JSONObject(result).getString("new_user").equals("1"))
 
                         return true;
@@ -842,10 +895,11 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
      * @param password
      */
 
-    private void saveUser(String email,String password){
+    private void saveUser(String email,String password,String ID){
 
         PreferencesUtils.saveData("username", email, LoginActivity.this);
         PreferencesUtils.saveData("password", password, LoginActivity.this);
+        PreferencesUtils.saveData("userid", ID, LoginActivity.this);
         PreferencesUtils.saveData("user logged","1",LoginActivity.this);
     }
     private boolean isEmailValid(String email) {
@@ -1081,6 +1135,8 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
 
                                     String gender=user.getProperty("gender").toString();
 
+
+
                                     fblogin.setVisibility(View.GONE);
 
 //										Supportingcalls.getData(context,(String)user.getProperty("email"),user.getName(),
@@ -1282,91 +1338,133 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
         return path;
     }
 
+
+
     /**
      get all users
-     @param page-pagecount
      */
-    public  void retrieveAllUsersFromPage(int page){
+    public class RetrieveUsers extends AsyncTask<String,String,Boolean>{
 
 
-        final CommentsDataSource obj=new CommentsDataSource(this);
-        obj.open();
 
-        final QBPagedRequestBuilder pagedRequestBuilder = new QBPagedRequestBuilder();
-        pagedRequestBuilder.setPage(page);
-        pagedRequestBuilder.setPerPage(100);
-        Toast.makeText(getApplicationContext(), "retrieving users", Toast.LENGTH_LONG).show();
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+
+        }
+
+        @Override
+        protected Boolean doInBackground(String... strings) {
+
+            try {
+                ApplicationSingleton.apiresult = Connecttoget.callJson(Urls.GET_USERS);
+                obj=new CommentsDataSource(LoginActivity.this);
+                obj.open();
+                if( new JSONObject(ApplicationSingleton.apiresult).getInt("status")==1) {
+                    ApplicationSingleton.apiresultJSON = new JSONObject(ApplicationSingleton.apiresult).getJSONArray("userList");
+
+                    int size = ApplicationSingleton.apiresultJSON.length();
+                    for (int i = 0; i < size; i++) {
+
+                        if (SplashActivity.phones.contains(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("mobile_no"))) {
+                            modelclass obj = new modelclass();
+                            obj.setUserName(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("name"));
+                            obj.setUserEmail(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("email"));
+                            obj.setUserId(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("chat_id"));
+                            obj.setGender(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("gender"));
+
+                            JSONObject OBJ=new JSONObject();
+                            OBJ.put("profile_pic",ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("profile_pic"));
+                            OBJ.put("latitude",ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("latitude"));
+                            OBJ.put("longitude",ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("longitude"));
+                            OBJ.put("user_info",ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("user_info"));
 
 
-        // You have successfully created the session
-        //
-        // Now you can use QuickBlox API!
+                            obj.setUserCustomData(OBJ.toString());
+                            obj.setUserPhone(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("mobile_no"));
+                            userList.add(obj);
 
-        QBUsers.getUsers(pagedRequestBuilder, new QBEntityCallbackImpl<ArrayList<QBUser>>() {
+                        }
+                    }
+                    System.out.println("adding users " + userList);
+                    if (userList.size() > 0)
+                        obj.bulkInsertUserData(userList,LoginActivity.this);
 
-            int userNumber = 1;
+                    String USERID=PreferencesUtils.getData("userid", LoginActivity.this);
+                    ApplicationSingleton.apiresult = Connecttoget.callJson(Urls.GET_GROUPS);
 
-            @Override
-            public void onSuccess(ArrayList<QBUser> users, Bundle params) {
+                    if(new JSONObject(ApplicationSingleton.apiresult).getInt("status")==1) {
+                        ApplicationSingleton.apiresultJSON = new JSONObject(ApplicationSingleton.apiresult).getJSONArray("data");
+                        size = ApplicationSingleton.apiresultJSON.length();
+                        userList.clear();
+                        for (int i = 0; i < size; i++) {
 
 
-                ArrayList<modelclass> userList = new ArrayList<modelclass>();
-                int size = users.size();
-                for (int i = 0; i < size; i++) {
+                            if ( ApplicationSingleton.apiresultJSON.getJSONObject(i).getJSONArray("userDetails").toString().contains("\"id\":\""+USERID+"\"")) {
+                                modelclass obj = new modelclass();
+                                obj.setGroupName(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("group_name"));
+                                obj.setGroupTags(ApplicationSingleton.apiresultJSON.getJSONObject(i).getJSONArray("tagDetails").toString());
+                                obj.setGroupid(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("group_qb_id"));
+                                obj.setAdminId(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("admin_id"));
+                                obj.setGroupUsers(ApplicationSingleton.apiresultJSON.getJSONObject(i).getJSONArray("userDetails").toString());
 
-                    if (SplashActivity.phones.contains(users.get(i).getPhone())) {
-                        modelclass obj = new modelclass();
-                        obj.setUserName(users.get(i).getFullName().toLowerCase().trim());
-                        obj.setUserEmail(users.get(i).getEmail());
-                        obj.setUserId(users.get(i).getId().toString());
-                        if(users.get(i).getCustomData()==null)
-                            obj.setUserCustomData("{\"user_info\":\"hii I am using Wingman\",\"profile_pic\":\"\"}");
-                        else
-                        obj.setUserCustomData(users.get(i).getCustomData());
-                        obj.setUserPhone(users.get(i).getPhone());
-                        userList.add(obj);
+                                userList.add(obj);
+
+                            }
+                        }
+
+                        System.out.println("adding groups " + userList);
+                        if (userList.size() > 0)
+                            obj.bulkInsertGroupData(userList);
+
+
+
+                        return true;
+
+                    }else{
+
+                        ApplicationSingleton.apiresultMessage=new JSONObject(ApplicationSingleton.apiresult).getString("message");
 
                     }
+
+                }else{
+
+                    ApplicationSingleton.apiresultMessage=new JSONObject(ApplicationSingleton.apiresult).getString("message");
+                }
+            }catch(JSONException e){
+
+                e.printStackTrace();
+            }
+            return false;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean s) {
+            super.onPostExecute(s);
+            if(s){
+
+                PreferencesUtils.saveData("distance","km",LoginActivity.this);
+                PreferencesUtils.saveData("distancevalue", "5",LoginActivity.this);// saving initial distance data as 5 km
+
+                if (mEmailSignInButton.getText().toString().equals(getResources().getString(R.string.action_sign_in))) {
+                    Intent in = new Intent(LoginActivity.this, DialogsActivity.class);
+                    startActivity(in);
+                }
+                else{
+                    Intent intent = new Intent(LoginActivity.this, PickContact.class);
+                    startActivity(intent);
                 }
 
-                if (userList.size() > 0)
-                    obj.bulkInsertUserData(userList);
 
-                Toast.makeText(getApplicationContext(), "users merged" + userList.size(), Toast.LENGTH_LONG).show();
-
-                userNumber = users.size() + 1;
-                int currentPage = params.getInt(Consts.CURR_PAGE);
-                int totalEntries = params.getInt(Consts.TOTAL_ENTRIES);
-
-                if (userNumber < totalEntries) {
-                    retrieveAllUsersFromPage(currentPage + 1);
-                } else{
-
-                    if (mEmailSignInButton.getText().toString().equals(getResources().getString(R.string.action_sign_in))) {
-                        Intent in = new Intent(LoginActivity.this, DialogsActivity.class);
-                        startActivity(in);
-                    }
-                    else{
-                        Intent intent = new Intent(LoginActivity.this, PickContact.class);
-                        startActivity(intent);
-                    }
-
-                }
+            }else{
+                ApplicationSingleton.ShowFailedAlert(getApplicationContext(),ApplicationSingleton.apiresultMessage);
             }
-
-            @Override
-            public void onError(List<String> errors) {
-
-                ApplicationSingleton.ShowFailedAlert(getApplicationContext(),"Sorry some error occurred on loading the app"+errors.toString());
-
-            }
-        });
-
-
-
-
-
+        }
     }
+
+
+
+
 
 
 

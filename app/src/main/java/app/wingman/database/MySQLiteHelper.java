@@ -30,6 +30,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
 	public static final String PARENT_ID = "parentid";
 	  public static final String CHAT_ID = "chatid";
 	  public static final String USER_NAME = "name";
+	public static final String GENDER = "gender";
 	  public static final String USER_EMAIL = "email";
 	  public static final String USER_CUSTOMDATA = "userdata";
 	public static final String USER_PHONE = "phone";
@@ -57,10 +58,12 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
 	      + TABLE_USER + "("+ COLUMN_ID
 	      + " integer primary key autoincrement, " + CHAT_ID
 	      + " text not null, " + USER_NAME
+
 			  + " text not null, " + USER_CUSTOMDATA
 			  + " text not null, " + USER_EMAIL
 
 			  + " text not null, " +USER_PHONE
+			  + " text not null, " + GENDER
 	      + " text not null);";
 
 	private static final String CREATE_GROUP = "create table "

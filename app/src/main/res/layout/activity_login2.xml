@@ -8,7 +8,7 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="titech.wingman.Activities.LoginActivity">
+    tools:context="app.wingman.ui.activities.LoginActivity">
 
     <!-- Login progress -->
     <ProgressBar
@@ -101,6 +101,28 @@
                     android:singleLine="true" />
 
             </android.support.design.widget.TextInputLayout>
+            <RadioGroup
+                android:id="@+id/gendergrp"
+                android:layout_width="match_parent"
+                android:orientation="horizontal"
+                android:visibility="gone"
+                android:layout_height="wrap_content">
+
+                <RadioButton
+                    android:id="@+id/maleradio"
+                    android:text="Male"
+                    android:layout_gravity="left"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+                <RadioButton
+                    android:id="@+id/femaleradio"
+                    android:text="Female"
+                    android:layout_gravity="right"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+
+            </RadioGroup>
 
 </LinearLayout>
 

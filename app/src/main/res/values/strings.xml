@@ -45,8 +45,29 @@
     <string name="Request">Request</string>
     <string name="Groups">Groups</string>
     <string name="Messages">Messages</string>
+    <string name="Settings">Settings</string>
     <string name="CreateGroup">Create Group</string>
     <string name="title_activity_search">SearchActivity</string>
+    <string name="title_activity_connections_and_requests">ConnectionsAndRequests</string>
+
+
+    <string name="connections_userid">userid</string>
+    <string name="connections_POSITIONS">position</string>
+    <string name="connections_groupid">groupid</string>
+    <string name="title_activity_settings">Settings</string>
+    
+    <!--   settings text  !-->
+    
+    <string name="only_male">Only Male users in search result</string>
+    <string name="only_female">Only Female users in search result</string>
+    <string name="both">Both</string>
+
+
+
+    <string name="specific_miles">Specific miles from my location</string>
+    <string name="specific_km">Specific kilometers from my location</string>
+    <string name="vibrate_phone">Vibrate phone when notification arrives</string>
+
 
 
 </resources>
