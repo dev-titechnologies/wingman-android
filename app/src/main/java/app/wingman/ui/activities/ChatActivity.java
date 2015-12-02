@@ -600,40 +600,40 @@ Intent gd = new Intent(getApplicationContext(),GroupDetail.class);
 
 
         if (id == R.id.attach) {
-//            getImages();
-//        }
+            getImages();
+        }
 
 //        if (id == R.id.add_user) {
 //
 //
 //
-            QBDialog dialog1 = new QBDialog();
-            dialog1.setDialogId("565d802aa0eb47dca20006fd");
-
-
-            QBRequestUpdateBuilder requestBuilder = new QBRequestUpdateBuilder();
-            requestBuilder.push("occupants_ids", "6967861"); // add another users
-
-
-// requestBuilder.pullAll("occupants_ids", 6967861); // Remove yourself (user with ID 22)
-
-            QBGroupChatManager groupChatManager = QBChatService.getInstance().getGroupChatManager();
-            groupChatManager.updateDialog(dialog1, requestBuilder, new QBEntityCallbackImpl<QBDialog>() {
-                @Override
-                public void onSuccess(QBDialog dialog, Bundle args) {
-Log.e("member added","added"+dialog.toString());
-                }
-
-                @Override
-                public void onError(List<String> errors) {
-                    Log.e("member added","error"+errors.toString());
-
-                }
-            });
-
-            return true;
+//            QBDialog dialog1 = new QBDialog();
+//            dialog1.setDialogId("565d802aa0eb47dca20006fd");
+//
+//
+//            QBRequestUpdateBuilder requestBuilder = new QBRequestUpdateBuilder();
+//            requestBuilder.push("occupants_ids", "6967861"); // add another users
+//
+//
+//// requestBuilder.pullAll("occupants_ids", 6967861); // Remove yourself (user with ID 22)
+//
+//            QBGroupChatManager groupChatManager = QBChatService.getInstance().getGroupChatManager();
+//            groupChatManager.updateDialog(dialog1, requestBuilder, new QBEntityCallbackImpl<QBDialog>() {
+//                @Override
+//                public void onSuccess(QBDialog dialog, Bundle args) {
+//Log.e("member added","added"+dialog.toString());
+//                }
+//
+//                @Override
+//                public void onError(List<String> errors) {
+//                    Log.e("member added","error"+errors.toString());
+//
+//                }
+//            });
+//
+//            return true;
+////        }
 //        }
-        }
         return super.onOptionsItemSelected(item);}
 
 }
