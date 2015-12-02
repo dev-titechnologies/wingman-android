@@ -56,51 +56,56 @@ public class GetMyLocation {
 	//to find the current latitude and longitude of user
 	public double[]  getMyLocationn() {
 
-		locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-		location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-
-		Log.d("STATUS n", "else" + location);
-
-		if (location != null) {
-			loc[0] = location.getLatitude();
-			loc[1] = location.getLongitude();
-			ApplicationSingleton.LOCATION_ARRAY = loc;
-			return loc;
-		} else {
+		try {
 			locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-			boolean is_gps = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-			location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-			Log.d("STATUS n", "If " + location);
+			location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+
+			Log.d("STATUS n", "else" + location);
 
 			if (location != null) {
 				loc[0] = location.getLatitude();
 				loc[1] = location.getLongitude();
 				ApplicationSingleton.LOCATION_ARRAY = loc;
-				double distance;
 				return loc;
 			} else {
-
-				//SAME NETWORK PROVIDER
 				locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-				if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+				boolean is_gps = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+				location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+				Log.d("STATUS n", "If " + location);
 
-					ApplicationSingleton.ShowAlert(context,"please add location permission in settings page of the app");
+				if (location != null) {
+					loc[0] = location.getLatitude();
+					loc[1] = location.getLongitude();
+					ApplicationSingleton.LOCATION_ARRAY = loc;
+					double distance;
+					return loc;
+				} else {
 
-				}else {
-					location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-					Log.d("STATUS n", "else" + location);
+					//SAME NETWORK PROVIDER
+					locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+					if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
-					if (location != null) {
+						ApplicationSingleton.ShowWarningAlert(context, "Please add location permission in settings page of the app");
 
-						loc[0] = location.getLatitude();
-						loc[1] = location.getLongitude();
-						ApplicationSingleton.LOCATION_ARRAY = loc;
-						return loc;
+					} else {
+						location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+						Log.d("STATUS n", "else" + location);
+
+						if (location != null) {
+
+							loc[0] = location.getLatitude();
+							loc[1] = location.getLongitude();
+							ApplicationSingleton.LOCATION_ARRAY = loc;
+							return loc;
+						}
 					}
 				}
-            }
 
-        }
+			}
+		}catch(Exception e){
+
+			e.printStackTrace();
+		}
 
 //System.out.println("gps my location 81 location class"+loc[0]);
 
@@ -186,16 +191,20 @@ public class GetMyLocation {
 		@Override
 		protected void onPostExecute(String s) {
 			super.onPostExecute(s);
-Log.e("ApplicationSingleton",ApplicationSingleton.LOCATION_ARRAY.toString());
-			if (PreferencesUtils.getData("user logged", context).equals("0")){
 
-				Intent in = new Intent(context, LoginActivity.class);
-				context.startActivity(in);
 
-			}else {
-				Intent intent = new Intent(context, DialogsActivity.class);
-				context.startActivity(intent);
-			}
+
+
+//			if (PreferencesUtils.getData("user logged", context).equals("0")){
+//
+//				Intent in = new Intent(context, LoginActivity.class);
+//				context.startActivity(in);
+//
+//			}else {
+//				Intent intent = new Intent(context, DialogsActivity.class);
+//				context.startActivity(intent);
+//			}
+
 
 //			QBLocation location = new QBLocation(ApplicationSingleton.LOCATION_ARRAY[0], ApplicationSingleton.LOCATION_ARRAY[1], s);
 //			QBLocations.createLocation(location, new QBEntityCallbackImpl<QBLocation>() {

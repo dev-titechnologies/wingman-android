@@ -2,9 +2,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:chat="http://schemas.android.com/apk/res-auto">
 
+    <item
+        android:id="@+id/attach"
 
-    <item android:id="@+id/add_user"
-        android:title="add"
+        chat:showAsAction="ifRoom"
+        android:icon="@drawable/attachment"
+        android:title="@string/Attachment" />
 
-        chat:showAsAction="always" />
 </menu>

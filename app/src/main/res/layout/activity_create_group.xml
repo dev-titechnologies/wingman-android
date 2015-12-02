@@ -46,6 +46,12 @@
             android:layout_below="@+id/groupname"
             android:layout_toRightOf="@+id/creategrpButton"
             android:layout_toEndOf="@+id/creategrpButton" />
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:id="@+id/progressBar"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_centerHorizontal="true" />
         <ListView
             android:id="@+id/lstcontacts"
             android:layout_below="@id/creategrpButton"

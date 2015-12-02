@@ -4,19 +4,23 @@ import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.SearchManager;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.NavigationView;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -32,22 +36,22 @@ import com.quickblox.chat.model.QBDialog;
 import com.quickblox.core.QBEntityCallbackImpl;
 
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import app.wingman.ApplicationSingleton;
+
 import app.wingman.R;
-import app.wingman.core.Chat;
-import app.wingman.core.ChatService;
+
+import app.wingman.networks.Connecttoget;
 import app.wingman.pushnotifications.Consts;
-import app.wingman.pushnotifications.PlayServicesHelper;
-import app.wingman.ui.activities.*;
-import app.wingman.ui.activities.ChatActivity;
-import app.wingman.ui.adapters.DialogsAdapter;
 
-import app.wingman.utils.GetMyLocation;
 
+import app.wingman.settings.Urls;
+import app.wingman.utils.PreferencesUtils;
 import jp.co.recruit_lifestyle.android.widget.WaveSwipeRefreshLayout;
 
 
@@ -65,6 +69,7 @@ public class DialogsActivity extends BaseActivity {
     private Toolbar toolbar;
     private NavigationView navigationView;
     private DrawerLayout drawerLayout;
+    SearchView searchview=null;
 
 
 
@@ -73,8 +78,10 @@ public class DialogsActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.dialogs_activity);
 
-        playServicesHelper = new app.wingman.pushnotifications.PlayServicesHelper(this);
+        PreferencesUtils.saveData("callfromgroup", "false", getApplicationContext());
 
+        playServicesHelper = new app.wingman.pushnotifications.PlayServicesHelper(this);
+Log.e("regId",playServicesHelper.regId);
         dialogsListView = (ListView) findViewById(R.id.roomsList);
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
 
@@ -89,6 +96,7 @@ public class DialogsActivity extends BaseActivity {
                 }
             }
         });
+        progressBar.setVisibility(View.VISIBLE);
         // Register to receive push notifications events
         //
         LocalBroadcastManager.getInstance(this).registerReceiver(mPushReceiver,
@@ -138,6 +146,8 @@ public class DialogsActivity extends BaseActivity {
                         Toast.makeText(getApplicationContext(),"Request Selected",Toast.LENGTH_SHORT).show();
                         return true;
                     case R.id.Groups:
+
+                        PreferencesUtils.saveData("callfromgroup","true",getApplicationContext());
                          Intent groups = new Intent(getApplicationContext(),GroupsActivity.class);
                         startActivity(groups);
                         return true;
@@ -184,7 +194,7 @@ public class DialogsActivity extends BaseActivity {
     }
 
     public void getDialogs(){
-        progressBar.setVisibility(View.VISIBLE);
+
 
         // Get dialogs
         //
@@ -248,6 +258,18 @@ public class DialogsActivity extends BaseActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.rooms, menu);
+
+        MenuItem item=(MenuItem)menu.findItem(R.id.action_search);
+        SearchManager manager=(SearchManager)DialogsActivity.this.getSystemService(Context.SEARCH_SERVICE);
+
+
+        if(item!=null){
+
+            searchview=(SearchView)item.getActionView();
+        }if(searchview!=null){
+            ComponentName cn = new ComponentName(this, SearchActivity.class);
+            searchview.setSearchableInfo(manager.getSearchableInfo(DialogsActivity.this.getComponentName()));
+        }
         return true;
     }
 
@@ -274,6 +296,7 @@ public class DialogsActivity extends BaseActivity {
 
             return true;
         }
+
         return super.onOptionsItemSelected(item);
     }
 
@@ -378,6 +401,34 @@ public class DialogsActivity extends BaseActivity {
 //    }
 
 
-
+//    public  class getallData extends AsyncTask<String, Integer, String> {
+//
+//        @Override
+//        protected String doInBackground(String... params) {
+//
+//
+//
+//
+//            String gettag= Connecttoget.callJsonWithparams(Urls.GETNAMES);
+//            try {
+//                JSONObject alltagarray = new JSONObject(gettag);
+//                if(alltagarray.getInt("status")==1){
+//                    JSONArray tags = alltagarray.getJSONArray("data");
+//                    Log.e("get tag ",tags.toString());
+//                    PreferencesUtils.saveData("ALLTAGS", tags.toString(), getApplicationContext());}
+//                else{
+//                    Toast.makeText(getApplicationContext(),"ERROR FROM SERVER.!!",2000).show();
+//                }
+//            } catch (JSONException e) {
+//                e.printStackTrace();
+//            }
+//
+//
+//
+//            return null;
+//        }
+//
+//
+//    }
 
 }

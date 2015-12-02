@@ -66,7 +66,7 @@ public class TimeUtils {
             res.append(" ago");
             return res.toString();
         } else {
-            return "0 second ago";
+            return "Till Now";
         }
     }
 }

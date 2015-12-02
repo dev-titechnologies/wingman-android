@@ -16,7 +16,8 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.ContactsContract;
-import android.support.design.widget.Snackbar;
+
+import android.support.multidex.MultiDex;
 import android.util.Log;
 import android.view.View;
 
@@ -24,6 +25,7 @@ import com.quickblox.core.QBSettings;
 import com.quickblox.users.model.QBUser;
 
 import app.wingman.utils.PreferencesUtils;
+import cn.pedant.SweetAlert.SweetAlertDialog;
 
 
 public class ApplicationSingleton extends Application {
@@ -65,7 +67,10 @@ public class ApplicationSingleton extends Application {
 
 
     }
-
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(base);
+        MultiDex.install(this);
+    }
     @Override
     public void onCreate() {
         super.onCreate();
@@ -132,10 +137,38 @@ public class ApplicationSingleton extends Application {
         }
     }
 
-    public static void ShowAlert(Context context, String message) {
+    /**
+     * ALERTS
+     * @param context - CONTEXT OF SENDING ACTIVITY/FRAGMENT
+     * @param message  -MESSAGE TO BE DISPLAYED
+     */
 
-        AlertDialog.Builder dialog = new AlertDialog.Builder(context);
-        dialog.setMessage(message).create().show();
+    public static void ShowSuccessAlert(Context context, String message) {
+
+
+        new SweetAlertDialog(context, SweetAlertDialog.SUCCESS_TYPE)
+                .setTitleText("SUCCESS")
+                .setContentText(message)
+                .show();
+
+    }
+    public static void ShowFailedAlert(Context context, String message) {
+
+
+        new SweetAlertDialog(context, SweetAlertDialog.ERROR_TYPE)
+                .setTitleText("SORRY")
+                .setContentText(message)
+                .show();
+
+    }
+    public static void ShowWarningAlert(Context context, String message) {
+
+
+        new SweetAlertDialog(context, SweetAlertDialog.WARNING_TYPE)
+                .setTitleText("ALERT")
+                .setContentText(message)
+                .setConfirmText("OK")
+                .show();
 
     }
 

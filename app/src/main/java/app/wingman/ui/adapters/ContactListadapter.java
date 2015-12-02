@@ -14,11 +14,16 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.quickblox.users.model.QBUser;
+import com.squareup.picasso.Picasso;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import app.wingman.R;
+import app.wingman.models.modelclass;
 
 
 /**
@@ -39,7 +44,7 @@ public class ContactListadapter extends BaseAdapter implements Filterable {
     Context context;
     int count=0;
     ArrayList <QBUser> qbuser= new ArrayList<QBUser>();
-    private List<QBUser> selected = new ArrayList<QBUser>();
+    public static List<QBUser> selected = new ArrayList<QBUser>();
     public ContactListadapter(Context context,ArrayList <QBUser> qbuser ) {
 
 
@@ -87,6 +92,16 @@ holder.addCheckBox.setOnClickListener(new View.OnClickListener() {
 //                    holder.userLogin.setText(qbuser.get(position).getFullName().toString());
 //                }
             holder.userLogin.setText(qbuser.get(position).getFullName());
+//            try {
+//                JSONObject cdata = new JSONObject(qbuser.get(position).getCustomData());
+//                Picasso.with(context)
+//                        .load(cdata.getString("profile_pic"))
+//                        .into(holder.userlogo);
+//
+//            } catch (JSONException e) {
+//                e.printStackTrace();
+//            }
+
 
         }
         return convertView;

@@ -226,15 +226,15 @@ public class ContactsAdapter extends CursorAdapter implements SectionIndexer{
                 holder.icon.setImageBitmap(Roundedimageview.getCroppedBitmap(bm, bm.getWidth() - 20));
             }
 
-        if (PickContact.phones.contains(phone)) {
-
-            System.out.println("phone is there"+" "+PickContact.phones+" real "+phone);
-            holder.invite.setTag((R.string.emailtag), phone);
-            holder.invite.setText(context.getResources().getString(R.string.action_add));
-
-        } else {
-            holder.invite.setText(context.getResources().getString(R.string.action_invite));
-        }
+//        if (PickContact.phones.contains(phone)) {
+//
+//            System.out.println("phone is there"+" "+PickContact.phones+" real "+phone);
+//            holder.invite.setTag((R.string.emailtag), phone);
+//            holder.invite.setText(context.getResources().getString(R.string.action_add));
+//
+//        } else {
+//            holder.invite.setText(context.getResources().getString(R.string.action_invite));
+//        }
 
 //            try{
 //            if(Constantss.selectedcontactsarray.size()>0){

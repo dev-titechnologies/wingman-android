@@ -42,7 +42,7 @@ import app.wingman.utils.GetMyLocation;
 import app.wingman.utils.PreferencesUtils;
 
 public class PickContact  extends app.wingman.ui.activities.BaseActivity implements QBEntityCallback<ArrayList<QBUser>>,
-        LoaderManager.LoaderCallbacks<Cursor>,AdapterView.OnItemClickListener {
+       AdapterView.OnItemClickListener {
 
     ContactsAdapter mAdapter;
     ListView   contactlist;
@@ -50,8 +50,8 @@ public class PickContact  extends app.wingman.ui.activities.BaseActivity impleme
     private ArrayList<String> alphabetarray = new ArrayList<String>();
     private HashMap<String, Integer> sections = new HashMap<String, Integer>();
 
-    public static ArrayList<String> phones = new ArrayList<String>();
-    public static ArrayList<QBUser> userslist=new ArrayList<QBUser>();
+
+
     int pageCount=0;
 
 
@@ -71,7 +71,7 @@ public class PickContact  extends app.wingman.ui.activities.BaseActivity impleme
                 finish();
             }
         });
-        retrieveAllUsersFromPage(1);
+
 
          mAdapter = new ContactsAdapter(PickContact.this);
            contactlist = (ListView) findViewById(R.id.lstcontacts);
@@ -80,144 +80,6 @@ public class PickContact  extends app.wingman.ui.activities.BaseActivity impleme
 
     }
 
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        if (id == ContactsQuery.QUERY_ID)
-        {
-            Uri contentUri;
-
-
-
-            contentUri = ContactsQuery.CONTENT_URI;
-
-
-            return new CursorLoader(PickContact.this,
-                    contentUri,
-                    ContactsQuery.PROJECTION,
-                    ContactsQuery.SELECTION,
-                    null,
-                    ContactsQuery.SORT_ORDER);
-        }
-
-
-
-        return null;
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-
-
-
-        if (loader.getId() == ContactsQuery.QUERY_ID) {
-
-            mAdapter.swapCursor(data);
-
-            data.moveToFirst();
-
-//            do{
-//                try{
-//                    names.add(data.getString(2));
-//                }
-//                catch(Exception e){
-//                    e.printStackTrace();
-//                }
-//                Constantss.selectedcontactsarray.add("0");
-//
-//            } while(data.moveToNext());
-
-
-
-
-
-
-
-
-
-            //////////////////////////////////////////////
-
-
-
-            contactlist.setAdapter(mAdapter);
-            contactlist.setOnItemClickListener(PickContact.this);
-
-
-
-
-
-
-//	     	       contactlist.setOnScrollListener(new AbsListView.OnScrollListener() {
-//	     	            @Override
-//	     	            public void onScrollStateChanged(AbsListView absListView, int scrollState) {
-//	     	                // Pause image loader to ensure smoother scrolling when flinging
-//	     	                if (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_FLING) {
-//
-//	     	                	//System.out.println("scroll fling");
-//	     	                } else {
-//
-//	     	                	//System.out.println("scroll not fling");
-//	     	                }
-//	     	            }
-//
-//	     	            @Override
-//	     	            public void onScroll(AbsListView absListView, int i, int i1, int i2) {}
-//	     	        });
-
-
-        }
-
-
-        ///////////////////////////////////////////////////////////////////
-
-    }
-    private void retrieveAllUsersFromPage(int page){
-        QBPagedRequestBuilder pagedRequestBuilder = new QBPagedRequestBuilder();
-        pagedRequestBuilder.setPage(page);
-        pagedRequestBuilder.setPerPage(100);
-
-        QBUsers.getUsers(pagedRequestBuilder, new QBEntityCallbackImpl<ArrayList<QBUser>>() {
-
-            int userNumber = 1;
-
-            @Override
-            public void onSuccess(ArrayList<QBUser> users, Bundle params) {
-
-
-                int size=users.size();
-                for(int i=0;i<size;i++){
-
-                    phones.add(users.get(i).getPhone());
-                    userslist.addAll(users);
-                }
-
-              userNumber=users.size()+1;
-                int currentPage = params.getInt(Consts.CURR_PAGE);
-                int totalEntries = params.getInt(Consts.TOTAL_ENTRIES);
-
-                if (userNumber < totalEntries) {
-                    retrieveAllUsersFromPage(currentPage + 1);
-                }else{
-
-                    PreferencesUtils.SaveUsers("users",userslist,phones,PickContact.this);
-                    getSupportLoaderManager().initLoader(1, null, PickContact.this);
-                }
-            }
-
-            @Override
-            public void onError(List<String> errors) {
-
-            }
-        });
-
-    }
-
-
-    // Start
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-
-    }
 
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {

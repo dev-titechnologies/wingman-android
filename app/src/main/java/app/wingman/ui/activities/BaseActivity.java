@@ -18,7 +18,7 @@ import app.wingman.core.ChatService;
 import app.wingman.utils.PreferencesUtils;
 
 /**
- * Created by igorkhomenko on 4/29/15.
+ * Created by titechnologies on 10/29/15.
  */
 public class BaseActivity extends AppCompatActivity implements app.wingman.core.ApplicationSessionStateCallback {
     private static final String TAG = BaseActivity.class.getSimpleName();

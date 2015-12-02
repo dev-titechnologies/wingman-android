@@ -34,8 +34,7 @@
             android:layout_toLeftOf="@+id/chatSendButton"
             android:autoText="true"
             android:hint="message text"
-            android:layout_toRightOf="@+id/imageButton"
-            android:layout_toEndOf="@+id/imageButton" />
+           />
 
         <Button
             android:id="@+id/chatSendButton"
@@ -66,14 +65,6 @@
             android:layout_centerHorizontal="true"
             android:layout_centerVertical="true"/>
 
-        <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/imageButton"
-            android:src="@drawable/ic_action_new"
-            android:layout_alignBottom="@+id/messageEdit"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true" />
 
     </RelativeLayout>
 

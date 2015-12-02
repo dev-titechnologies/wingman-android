@@ -16,5 +16,8 @@ public class Urls {
     public static String USER_UPDATE=PARENT_URL+"updateUser";
 
     public static String GET_TAGS="http://192.168.1.64:1338/tag/list";
+    public static String ADDUSERGRP="http://192.168.1.64:1338/group/inviteUser";
     public static String CREATEGROUP="http://192.168.1.64:1338/group/create";
+    public static String GETYOURGROUPS="http://192.168.1.64:1338/group/groupList";
+    public static String GETNAMES="http://192.168.1.64:1338/user/getUserNames";
 }

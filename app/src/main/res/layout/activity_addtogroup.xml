@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:orientation="vertical"
@@ -15,9 +15,17 @@
     android:layout_width="wrap_content"
     android:text="ADD"
    android:id="@+id/add"
+    android:layout_below="@+id/toolbar"
     android:layout_height="wrap_content" />
+    <ProgressBar
+        android:layout_width="wrap_content"
+        android:id="@+id/progressBar"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true" />
     <ListView
     android:layout_width="match_parent"
+        android:layout_below="@+id/add"
     android:id="@+id/contacts"
     android:layout_height="match_parent"></ListView>
-</LinearLayout>
+</RelativeLayout>

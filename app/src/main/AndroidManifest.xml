@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="app.wingman">
-
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
     <permission
         android:name="com.quickblox.simplesample.messages.permission.C2D_MESSAGE"
@@ -35,7 +33,8 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        tools:replace="android:icon">
         <activity android:name=".ui.activities.SplashActivity">
             android:theme="@style/AppTheme" >
             <intent-filter>
@@ -51,7 +50,7 @@
         <activity
             android:name=".ui.activities.DialogsActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"></activity>
         <activity
             android:name=".ui.activities.ChatActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
@@ -99,10 +98,29 @@
             android:name="com.facebook.sdk.ApplicationId"
             android:value="@string/app_id" />
 
-        <activity android:name=".ui.activities.CreateGroup" />
-        <activity android:name=".ui.activities.GroupsActivity" />
         <activity android:name=".ui.activities.GroupDetail" />
-        <activity android:name=".ui.activities.AddtogroupActivity"></activity>
+        <activity android:name=".ui.activities.AddtogroupActivity" />
+        <activity android:name=".ui.activities.CreateGroup" />
+        <activity android:name=".ui.activities.GroupsActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.app.searchable"
+                android:resource="@xml/searchbl" />
+        </activity>
+
+        <meta-data
+            android:name="android.app.default_searchable"
+            android:value="app.wingman.ui.activities.GroupsActivity" />
+
+        <activity
+            android:name=".ui.activities.SearchActivity"
+            android:label="@string/title_activity_search"
+            android:launchMode="singleTop"
+            android:theme="@style/AppTheme"></activity>
+        <activity android:name=".ui.activities.ImageViewer"></activity>
     </application>
 
 </manifest>

@@ -22,9 +22,9 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
 	private static final int DATABASE_VERSION = 1;
 
 
-	 public static final String COLUMN_ID = "_id";
-	  public static final String TABLE_USER = "user";
-	  public static final String TABLE_GROUP = "group";
+	 public static final String COLUMN_ID = "id";
+	  public static final String TABLE_USER = "tbluser";
+	  public static final String TABLE_GROUP = "tblgroup";
 
 	public static final String TABLE_CACHE = "cache";
 	public static final String PARENT_ID = "parentid";
@@ -36,10 +36,10 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
 
 
 	// FOR TABLE GROUP
-	public static final String GROUP_ID = "group_id";
+	public static final String GROUP_ID = "groupid";
 	public static final String GROUP_NAME = "name";
-	public static final String USERS = "name";
-	public static final String ADMIN_ID = "admin_id";
+	public static final String USERS = "users";
+	public static final String ADMIN_ID = "adminid";
 	public static final String TAGS="tags";
 
 

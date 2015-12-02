@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res-auto"
+    xmlns:android1="http://schemas.android.com/apk/res/android">
+
+<item
+    android1:id="@+id/action_search"
+    android1:title="@string/abc_search_hint"
+
+
+    android:actionViewClass="android.support.v7.widget.SearchView"
+   android:showAsAction="always"
+    android:icon="@android:drawable/ic_menu_search"
+    />
+
+</menu>

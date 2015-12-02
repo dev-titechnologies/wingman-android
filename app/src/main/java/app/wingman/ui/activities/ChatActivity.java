@@ -1,12 +1,16 @@
 package app.wingman.ui.activities;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
@@ -31,10 +35,13 @@ import com.quickblox.chat.model.QBDialog;
 import com.quickblox.chat.model.QBDialogType;
 import com.quickblox.content.QBContent;
 import com.quickblox.content.model.QBFile;
+import com.quickblox.core.QBEntityCallback;
 import com.quickblox.core.QBEntityCallbackImpl;
 import com.quickblox.core.QBProgressCallback;
 import com.quickblox.core.request.QBRequestGetBuilder;
 import com.quickblox.core.request.QBRequestUpdateBuilder;
+import com.quickblox.users.QBUsers;
+import com.quickblox.users.model.QBUser;
 
 
 import org.jivesoftware.smack.ConnectionListener;
@@ -44,6 +51,8 @@ import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smackx.carbons.packet.CarbonExtension;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -54,6 +63,8 @@ import app.wingman.core.ChatService;
 import app.wingman.core.GroupChatImpl;
 import app.wingman.core.PrivateChatImpl;
 import app.wingman.ui.adapters.ChatAdapter;
+import app.wingman.utils.PreferencesUtils;
+import app.wingman.utils.RealPathUtil;
 
 
 public class ChatActivity extends app.wingman.ui.activities.BaseActivity {
@@ -70,7 +81,7 @@ public class ChatActivity extends app.wingman.ui.activities.BaseActivity {
     private EditText messageEditText;
     private ListView messagesContainer;
     private Button sendButton;
-    private ImageButton attach;
+
     private ProgressBar progressBar;
     private ChatAdapter adapter;
     private File photoFile;
@@ -141,13 +152,15 @@ public class ChatActivity extends app.wingman.ui.activities.BaseActivity {
         messagesContainer = (ListView) findViewById(R.id.messagesContainer);
         messageEditText = (EditText) findViewById(R.id.messageEdit);
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
-        attach= (ImageButton)findViewById(R.id.imageButton);
+
 
         //on back press in back button
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-            Log.e("cliclked","fsdf");
+           Intent i = new Intent(getApplicationContext(),DialogsActivity.class);
+                startActivity(i);
+                finish();
             }
         });
 
@@ -155,6 +168,11 @@ public class ChatActivity extends app.wingman.ui.activities.BaseActivity {
         //
         Intent intent = getIntent();
         dialog = (QBDialog) intent.getSerializableExtra(EXTRA_DIALOG);
+
+        //saving the username of id for displaying the names in chatadapter
+
+
+
         container = (RelativeLayout) findViewById(R.id.container);
         if (dialog.getType() == QBDialogType.GROUP) {
 
@@ -192,32 +210,57 @@ Intent gd = new Intent(getApplicationContext(),GroupDetail.class);
             }
         });
 
-        // attach button
-        attach.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
 
-                getImages();
-            }
-        });
 
     }
     private void getImages() {
+
+       if(checkPermissionForExternalStorage())
+       {
         Intent intent = new Intent();
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
         startActivityForResult(Intent.createChooser(intent,
                 "Select Picture"), SELECT_PICTURE);
-    }
 
+
+
+       }
+    }
+    public boolean checkPermissionForExternalStorage(){
+        int result = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        if (result == PackageManager.PERMISSION_GRANTED){
+            return true;
+        } else {
+            return false;
+        }
+    }
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
             if (requestCode == SELECT_PICTURE) {
-                Uri selectedImageUri = data.getData();
-                selectedImagePath = getPath(selectedImageUri);
+
+                String realPath;
+                // SDK < API11
+                if (Build.VERSION.SDK_INT < 11)
+                    realPath = RealPathUtil.getRealPathFromURI_BelowAPI11(this, data.getData());
+
+                    // SDK >= 11 && SDK < 19
+                else if (Build.VERSION.SDK_INT < 19)
+                    realPath = RealPathUtil.getRealPathFromURI_API11to18(this, data.getData());
+
+                    // SDK > 19 (Android 4.4)
+                else
+                    realPath = RealPathUtil.getRealPathFromURI_API19(this, data.getData());
 
 
-                uploadSelectedImage(new File(selectedImagePath));
+
+                try {
+             File f = new File(  realPath);
+                    uploadSelectedImage(f);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
             }
         }
     }
@@ -253,6 +296,7 @@ Intent gd = new Intent(getApplicationContext(),GroupDetail.class);
                 if (dialog.getType() == QBDialogType.PRIVATE) {
                     showMessage(chatMessage);
                 }
+                progressBar.setVisibility(View.GONE);
             }
 
             @Override
@@ -396,6 +440,33 @@ Intent gd = new Intent(getApplicationContext(),GroupDetail.class);
             @Override
             public void onSuccess(ArrayList<QBChatMessage> messages, Bundle args) {
 
+//saving user names from id
+                for (int i = 0; i < dialog.getOccupants().size(); i++) {
+                    int participantId = Integer.valueOf((dialog.getOccupants().get(i)));
+
+                    QBUsers.getUser(participantId, new QBEntityCallback<QBUser>() {
+                        @Override
+                        public void onSuccess(QBUser qbUser, Bundle bundle) {
+
+                            PreferencesUtils.saveData(qbUser.getId().toString(),qbUser.getFullName(),getApplicationContext());
+                        }
+
+                        @Override
+                        public void onSuccess() {
+
+                        }
+
+                        @Override
+                        public void onError(List<String> list) {
+
+                        }
+                    });
+
+                }
+
+
+
+
                 adapter = new ChatAdapter(ChatActivity.this, new ArrayList<QBChatMessage>());
                 messagesContainer.setAdapter(adapter);
 
@@ -528,18 +599,20 @@ Intent gd = new Intent(getApplicationContext(),GroupDetail.class);
         int id = item.getItemId();
 
 
+        if (id == R.id.attach) {
+//            getImages();
+//        }
 
-
-        if (id == R.id.add_user) {
-
-
-
+//        if (id == R.id.add_user) {
+//
+//
+//
             QBDialog dialog1 = new QBDialog();
-            dialog1.setDialogId("5652ebc9a0eb477bdf000016");
+            dialog1.setDialogId("565d802aa0eb47dca20006fd");
 
 
             QBRequestUpdateBuilder requestBuilder = new QBRequestUpdateBuilder();
-            requestBuilder.push("occupants_ids", 6988465); // add another users
+            requestBuilder.push("occupants_ids", "6967861"); // add another users
 
 
 // requestBuilder.pullAll("occupants_ids", 6967861); // Remove yourself (user with ID 22)
@@ -559,7 +632,8 @@ Log.e("member added","added"+dialog.toString());
             });
 
             return true;
+//        }
         }
-        return super.onOptionsItemSelected(item);
-    }
+        return super.onOptionsItemSelected(item);}
+
 }

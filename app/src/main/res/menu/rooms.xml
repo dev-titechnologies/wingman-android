@@ -1,6 +1,17 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:chat="http://schemas.android.com/apk/res-auto">
 
+    <item
+
+        android:id="@+id/action_search"
+        android:title="@string/abc_search_hint"
+
+
+        chat:actionViewClass="android.support.v7.widget.SearchView"
+        chat:showAsAction="always"
+        android:icon="@android:drawable/ic_menu_search"
+        />
+
     <item android:id="@+id/action_add"
         android:title="New Chat"
         android:icon="@drawable/ic_action_new"
@@ -8,5 +19,6 @@
     <item android:id="@+id/action_contacts"
         android:title="contacts"
         android:icon="@drawable/ic_userr"
-        chat:showAsAction="always" />
+        chat:showAsAction="ifRoom" />
+
 </menu>

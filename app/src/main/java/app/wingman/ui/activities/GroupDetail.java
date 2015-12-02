@@ -60,7 +60,7 @@ public class GroupDetail extends AppCompatActivity {
         setSupportActionBar(tb);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
-        getSupportActionBar().setTitle(ChatActivity.dialog.getName());
+        getSupportActionBar().setTitle((ChatActivity.dialog.getName()).toUpperCase());
 
         tb.setNavigationOnClickListener(new View.OnClickListener() {
             @Override

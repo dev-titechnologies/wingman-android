@@ -2,6 +2,7 @@ package app.wingman.ui.adapters;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
@@ -21,10 +22,14 @@ import com.quickblox.chat.model.QBAttachment;
 import com.quickblox.chat.model.QBChatMessage;
 
 import com.quickblox.content.QBContent;
+import com.quickblox.core.QBCallbackImpl;
+import com.quickblox.core.QBEntityCallback;
 import com.quickblox.core.QBEntityCallbackImpl;
+import com.quickblox.core.result.Result;
+import com.quickblox.users.QBUsers;
 import com.quickblox.users.model.QBUser;
+import com.quickblox.users.result.QBUserResult;
 import com.squareup.picasso.Picasso;
-
 
 
 import java.io.InputStream;
@@ -34,17 +39,19 @@ import java.util.List;
 
 import app.wingman.R;
 import app.wingman.core.ChatService;
+import app.wingman.ui.activities.ImageViewer;
+import app.wingman.utils.PreferencesUtils;
 import app.wingman.utils.TimeUtils;
 
 
 public class ChatAdapter extends BaseAdapter implements QBMessageListener {
 
-    private final List<QBChatMessage> chatMessages;
+    public final List<QBChatMessage> chatMessages;
     private Activity context;
 
     @Override
     public void processMessage(QBChat qbChat, QBChatMessage qbChatMessage) {
-        for(QBAttachment attachment : qbChatMessage.getAttachments()){
+        for (QBAttachment attachment : qbChatMessage.getAttachments()) {
             Integer fileId = Integer.parseInt(attachment.getId());
 
             // download a file
@@ -52,7 +59,7 @@ public class ChatAdapter extends BaseAdapter implements QBMessageListener {
                 @Override
                 public void onSuccess(InputStream inputStream, Bundle params) {
                     // process file
-                    Log.e("received msg",inputStream.toString());
+                    Log.e("received msg", inputStream.toString());
                 }
 
                 @Override
@@ -115,8 +122,8 @@ public class ChatAdapter extends BaseAdapter implements QBMessageListener {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        ViewHolder holder;
-        QBChatMessage chatMessage = getItem(position);
+        final ViewHolder holder;
+        final QBChatMessage chatMessage = getItem(position);
         LayoutInflater vi = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
         //  if (convertView == null)
@@ -138,32 +145,52 @@ public class ChatAdapter extends BaseAdapter implements QBMessageListener {
         QBUser currentUser = ChatService.getInstance().getCurrentUser();
         boolean isOutgoing = chatMessage.getSenderId() == null || chatMessage.getSenderId().equals(currentUser.getId());
         setAlignment(holder, isOutgoing);
-try {
-    if (!getAttachUrlIfExists(chatMessage).equals("")) {
-        holder.txtMessage.setVisibility(View.GONE);
+        try {
+            if (!getAttachUrlIfExists(chatMessage).equals("")) {
+                holder.txtMessage.setVisibility(View.GONE);
 
-        if (!getAttachUrlIfExists(chatMessage).equals("")) {
-            Picasso.with(context)
-                    .load(getAttachUrlIfExists(chatMessage))
-                    .into(holder.stickerView);
+                if (!getAttachUrlIfExists(chatMessage).equals("")) {
+                    Picasso.with(context)
+                            .load(getAttachUrlIfExists(chatMessage))
+                            .into(holder.stickerView);
+                }
+
+                holder.stickerView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent i = new Intent(context,ImageViewer.class);
+                        i.putExtra("IMG",getAttachUrlIfExists(chatMessage));
+                        context.startActivity(i);
+                    }
+                });
+
+
+            } else {
+                holder.stickerView.setVisibility(View.GONE);
+                holder.txtMessage.setText(chatMessage.getBody());
+
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-    } else {
-        holder.stickerView.setVisibility(View.GONE);
-        holder.txtMessage.setText(chatMessage.getBody());
-
-    }
-
-}catch (Exception e){
-    e.printStackTrace();
-}
 
         if (chatMessage.getSenderId() != null) {
-            holder.txtInfo.setText(chatMessage.getSenderId() + ": " + getTimeText(chatMessage));
+
+
+
+
+            holder.txtInfo.setText(PreferencesUtils.getData(chatMessage.getSenderId()+"",context) + ": " + getTimeText(chatMessage));
+
         } else {
+
             holder.txtInfo.setText(getTimeText(chatMessage));
         }
+
+
         return convertView;
     }
+
     public static String getAttachUrlIfExists(QBChatMessage chatMessage) {
         String attachURL = "";
         Collection<QBAttachment> attachmentCollection = chatMessage.getAttachments();
@@ -172,6 +199,7 @@ try {
         }
         return attachURL;
     }
+
     public static String getAttachUrlFromMessage(Collection<QBAttachment> attachmentsCollection) {
         if (attachmentsCollection != null) {
             ArrayList<QBAttachment> attachmentsList = new ArrayList<QBAttachment>(attachmentsCollection);
@@ -181,6 +209,7 @@ try {
         }
         return "";
     }
+
     public void add(QBChatMessage message) {
         chatMessages.add(message);
     }
@@ -257,4 +286,8 @@ try {
         public LinearLayout contentWithBG;
         public ImageView stickerView;
     }
+
+
+
+
 }

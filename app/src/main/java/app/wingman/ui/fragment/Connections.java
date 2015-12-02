@@ -6,7 +6,12 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+
 import android.util.Log;
+
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,18 +38,33 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import app.wingman.ApplicationSingleton;
 import app.wingman.R;
+
 
 import app.wingman.core.Chat;
 import app.wingman.ui.activities.ChatActivity;
 import app.wingman.ui.activities.GroupsActivity;
+
+import app.wingman.database.CommentsDataSource;
+import app.wingman.models.modelclass;
+import app.wingman.ui.activities.ChatActivity;
+import app.wingman.ui.adapters.ConnectionsAdapter;
+
 import app.wingman.utils.PreferencesUtils;
 
 
 public class Connections extends Fragment {
 
+    private boolean searchclassChecker=false;
+    String key;
+
     public Connections() {
         // Required empty public constructor
+    }
+    public Connections(String searchkey) {
+        // Required empty public constructor
+        key=searchkey;
     }
 
     @Override
@@ -52,13 +72,19 @@ public class Connections extends Fragment {
         super.onCreate(savedInstanceState);
     }
     private ListView groupsListView;
+    private RecyclerView connectionsList;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_connections, container, false);
+        if( PreferencesUtils.getData("callfromgroup", getActivity()).equals( "false"))
+            searchclassChecker=true;
 
         groupsListView = (ListView)view. findViewById(R.id.roomsList);
+        connectionsList=(RecyclerView)view.findViewById(R.id.connectionsList) ;
+        connectionsList.setLayoutManager(new LinearLayoutManager(getActivity()));
+        connectionsList.setHasFixedSize(true);
             getDialogs();
 
         return  view;
@@ -68,25 +94,58 @@ public class Connections extends Fragment {
 
         // Get dialogs
         //
-        app.wingman.core.ChatService.getInstance().getDialogs(new QBEntityCallbackImpl() {
-            @Override
-            public void onSuccess(Object object, Bundle bundle) {
 
-                final ArrayList<QBDialog> dialogs = (ArrayList<QBDialog>) object;
+        if( searchclassChecker==true){
 
-                // build list view
-                //
-                buildListView(dialogs);
+            try {
+                CommentsDataSource obj = new CommentsDataSource(getActivity());
+                obj.open();
+
+
+                ArrayList<modelclass> listt=(obj.getSearchResult(key.toLowerCase()));
+                if(listt.size()>0) {
+                    connectionsList.setVisibility(View.VISIBLE);
+                    groupsListView.setVisibility(View.GONE);
+                    ConnectionsAdapter adapter = new ConnectionsAdapter(listt,getActivity());
+                    connectionsList.setAdapter(adapter);
+
+                }else
+                    ApplicationSingleton.ShowFailedAlert(getActivity(),"No search result found");
+
+
+            }catch(Exception e){
+
+                e.printStackTrace();
+                ApplicationSingleton.ShowFailedAlert(getActivity(),"No search result found");
+
+
             }
 
-            @Override
-            public void onError(List errors) {
+        }else {
+            app.wingman.core.ChatService.getInstance().getDialogs(new QBEntityCallbackImpl() {
+                @Override
+                public void onSuccess(Object object, Bundle bundle) {
 
-                AlertDialog.Builder dialog = new AlertDialog.Builder(getActivity());
-                dialog.setMessage("No recent chats found").create().show();
+                    final ArrayList<QBDialog> dialogs = (ArrayList<QBDialog>) object;
 
-            }
-        });
+                    // build list view
+                    //
+                    connectionsList.setVisibility(View.GONE);
+                    groupsListView.setVisibility(View.VISIBLE);
+                    buildListView(dialogs);
+
+
+                }
+
+                @Override
+                public void onError(List errors) {
+
+                    AlertDialog.Builder dialog = new AlertDialog.Builder(getActivity());
+                    dialog.setMessage("No recent chats found").create().show();
+
+                }
+            });
+        }
     }
 
     private QBGroupChatManager groupChatManager;

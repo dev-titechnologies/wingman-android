@@ -35,7 +35,7 @@ public class PlayServicesHelper {
 
     private GoogleCloudMessaging googleCloudMessaging;
     private Activity activity;
-    private String regId;
+    public static String regId;
 
     public PlayServicesHelper(Activity activity) {
         this.activity = activity;
