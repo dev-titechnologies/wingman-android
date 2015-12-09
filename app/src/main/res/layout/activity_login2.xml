@@ -124,39 +124,6 @@
 
             </RadioGroup>
 
-</LinearLayout>
-
-            <!--  user layout !-->
-
-            <LinearLayout
-                android:id="@+id/user_layout"
-                android:orientation="vertical"
-                android:layout_width="match_parent"
-                android:visibility="gone"
-                android:layout_height="wrap_content">
-
-                <ImageView
-
-                    android:id="@+id/person_image"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:clickable="true"
-                    android:src="@drawable/ic_user_pink"
-                    android:onClick="showGallery"
-                    />
-
-                <EditText
-                    android:layout_marginTop="10dp"
-                    android:hint="@string/prompt_status"
-                    android:id="@+id/person_description"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-
-
-            </LinearLayout>
-
-            <!-- user layout ends    !-->
             <Button
                 android:id="@+id/email_sign_in_button"
                 style="?android:textAppearanceSmall"
@@ -186,6 +153,53 @@
                 android:onClick="Onsignup"
                 android:text="@string/action_sign_up"
                 android:textStyle="bold" />
+
+</LinearLayout>
+
+            <!--  user layout !-->
+
+            <LinearLayout
+                android:id="@+id/user_layout"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:visibility="gone"
+                android:layout_height="wrap_content">
+
+                <ImageView
+
+                    android:id="@+id/person_image"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:clickable="true"
+                    android:src="@drawable/ic_user_pink"
+                    android:onClick="showGallery"
+                    />
+
+                <EditText
+                    android:layout_marginTop="10dp"
+                    android:hint="@string/prompt_status"
+                    android:id="@+id/person_description"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+                <Button
+                    android:id="@+id/btncompleteprofile"
+                    style="?android:textAppearanceSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:layout_gravity="right"
+                    android:background="@null"
+                    android:onClick="OnCompleteProfile"
+                    android:text="@string/action_profile_update"
+                    android:textStyle="bold" />
+
+
+
+            </LinearLayout>
+
+            <!-- user layout ends    !-->
+
 
 
             

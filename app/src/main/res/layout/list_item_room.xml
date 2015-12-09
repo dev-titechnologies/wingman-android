@@ -19,15 +19,17 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
-        android:textSize="20sp" />
+        style="@style/MainTextViewStyle" />
     <TextView
         android:id="@+id/lastMessage"
         android:layout_below="@+id/roomName"
         android:layout_toRightOf="@+id/roomImage"
         android:layout_width="match_parent"
+
+       style="@style/SubTextStyle"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
-        android:textSize="20sp" />
+       />
 
     <TextView
         android:layout_width="wrap_content"

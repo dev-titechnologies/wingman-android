@@ -80,13 +80,18 @@ public class GroupsActivity extends AppCompatActivity {
         }
     }
     private void setupViewPager(ViewPager viewPager) {
+
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
 
-        if(searchclassChecker)
-        adapter.addFragment(new Connections(query), "Connections");
-        else
-            adapter.addFragment(new Connections(), "Connections");
-        adapter.addFragment(new YourGroups(), "Your Groups");
+        YourGroups obj = new YourGroups();
+        Connections connectionsobj=new Connections();
+        if(searchclassChecker) {
+            obj.newInstance(query,false);
+            connectionsobj.newInstance(query,false);
+        }
+
+        adapter.addFragment(obj, "Your Groups");
+        adapter.addFragment(connectionsobj, "Connections");
 
         viewPager.setAdapter(adapter);
     }

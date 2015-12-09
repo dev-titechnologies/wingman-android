@@ -145,6 +145,7 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
     RadioGroup gendergrp;
     RadioButton mfemale,mmale;
 
+
     // for fb
 
     private Uri fileUri;
@@ -169,6 +170,10 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
     CommentsDataSource obj;
     ArrayList<modelclass> userList = new ArrayList<modelclass>();
 
+     String email ;
+     String password;
+    String phone ;
+    String username ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -232,17 +237,15 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
                             attemptLogin();
 
                         else {
-                            if (count == 0) {
-                                alertLayout.setVisibility(View.VISIBLE);
-                                mUserTopLayout.setVisibility(View.GONE);
-                                count++;
-                            } else {
-                                if (cameraFileName.length() > 0) {
+                           // if (count == 0) {
+                                //count++;
+//                            } else {
+//                                if (cameraFileName.length() > 0) {
                                     new CheckEmail().execute();
-                                } else {
-                                    Toast.makeText(LoginActivity.this, "Please select a profile pic", Toast.LENGTH_LONG).show();
-                                }
-                            }
+//                                } else {
+//                                    Toast.makeText(LoginActivity.this, "Please select a profile pic", Toast.LENGTH_LONG).show();
+//                                }
+                            //}
 
 
                         }
@@ -253,12 +256,12 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
         });
         gendergrp.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
-            public void onCheckedChanged(RadioGroup radioGroup, int i) {
+            public void onCheckedChanged(RadioGroup radioGroup, int id) {
 
-                if(radioGroup.getId()==R.id.femaleradio){
+                if(id==R.id.femaleradio){
 
                     PreferencesUtils.saveData("gender","female",LoginActivity.this);
-                }else if(radioGroup.getId()==R.id.maleradio){
+                }else if(id==R.id.maleradio){
                     PreferencesUtils.saveData("gender","male",LoginActivity.this);
                 }
             }
@@ -518,21 +521,51 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
         @Override
         protected void onPostExecute(QBUser s) {
             super.onPostExecute(s);
+            final QBUser user = new QBUser();
+
+
+            user.setEmail(email);
+            user.setPassword(password);
+            ChatService.initIfNeed(LoginActivity.this);
+
+            ChatService.getInstance().login(user, new QBEntityCallbackImpl() {
+
+                @Override
+                public void onSuccess() {
+
+
+                    saveUser( email, password, Integer.toString(user.getId()));
+//                    new QbSignin(password,email).execute();
+
+                }
+
+                @Override
+                public void onError(List errors) {
+
+                    ApplicationSingleton.ShowFailedAlert(LoginActivity.this,errors.toString());
+
+                }
+            });
+            showProgress(false);
             if(imgurl.length()>1)
                 new UpdateUser(s,imgurl,password).execute();
 
         }
     }
+
+    /**
+     * check validation before signup
+     */
     public void attemptSignup(){
 
         boolean cancel = false;
         View focusView = null;
 
         // Store values at the time of the login attempt.
-        final String email = mEmailView.getText().toString();
-        final String password = mPasswordView.getText().toString();
-        String phone = mPhone.getText().toString();
-        String username = mUserName.getText().toString();
+          email = mEmailView.getText().toString();
+          password = mPasswordView.getText().toString();
+          phone = mPhone.getText().toString();
+          username = mUserName.getText().toString();
 
         // Check for a valid password, if the user entered one.
         if (!TextUtils.isEmpty(password) && !isPasswordValid(password)) {
@@ -566,6 +599,12 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
             focusView = mUserName;
             cancel = true;
         }
+        if(PreferencesUtils.getData("gender",LoginActivity.this).equals("0")){
+
+            mfemale.setError(getString(R.string.error_field_required));
+            focusView=mfemale;
+            cancel=true;
+        }
         if (cancel) {
             // There was an error; don't attempt login and focus the first
             // form field with an error.
@@ -573,16 +612,26 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
         } else {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
-            showProgress(true);
+
+
+            alertLayout.setVisibility(View.VISIBLE);
+            mUserTopLayout.setVisibility(View.GONE);
+
+
         }
-            new QbSignup(username,password,email,phone,LoginActivity.this).execute();
+
     }
 
     /**
-     * user signin
+     * user profile update call and signup background task
 
      */
+    public void OnCompleteProfile(View v){
 
+        showProgress(true);
+        new QbSignup(username,password,email,phone,LoginActivity.this).execute();
+
+    }
 
     /**
      * Attempts to sign in or register the account specified by the login form.
@@ -714,12 +763,20 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
                                 obj.put("longitude", ApplicationSingleton.LOCATION_ARRAY[1]);
                                 obj.put("street", ApplicationSingleton.USER_STREET);
                                 obj.put("user_id", PreferencesUtils.getData("userid", LoginActivity.this));
-                                System.out.println("passing" + obj.toString());
+
                                 String result = Connecttoget.callJsonWithparams(Urls.USER_UPDATE, obj.toString());
 
-                                if (new JSONObject(result).getInt("status")==1)
 
-                                    resultflag=true;
+
+                                if (new JSONObject(result).getInt("status")==1) {
+
+                                    JSONObject objj=new JSONObject(new JSONObject(result).getString("details"));
+
+                                    PreferencesUtils.saveData("gender",objj.getString("gender"),LoginActivity.this);
+
+
+                                    resultflag = true;
+                                }
                                 else
                                     message = new JSONObject(result).getString("message");
 
@@ -781,9 +838,11 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
 
                 obj.put("name", user.getFullName());
                 obj.put("email",user.getEmail());
-                obj.put("password",MessageDigest.getInstance("MD5").digest(user.getPassword().getBytes()));
+
+                obj.put("password",Base64.encodeToString(user.getPassword().getBytes(), Base64.DEFAULT));
                 obj.put("mobile_no",user.getPhone());
                 obj.put("chat_id",user.getId());
+                obj.put("gender",PreferencesUtils.getData("gender",LoginActivity.this));
                 PreferencesUtils.saveData("user_id", user.getId().toString(), LoginActivity.this);
                 obj.put("device_os","android");
                 obj.put("gcm_reg_token","android");
@@ -812,13 +871,14 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
             }catch(QBResponseException e){
 
                 e.printStackTrace();
-            }catch(JSONException e){
-
-                e.printStackTrace();
-            }catch(NoSuchAlgorithmException e){
+            }catch(JSONException e) {
 
                 e.printStackTrace();
             }
+//            }catch(NoSuchAlgorithmException e){
+//
+//                e.printStackTrace();
+//            }
 
             return false;
         }
@@ -842,6 +902,7 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
 
     public  class CheckEmail extends AsyncTask<String,String,Boolean>{
 
+        String message;
 
         @Override
         protected Boolean doInBackground(String... strings) {
@@ -850,12 +911,15 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
             try{
                 JSONObject obj=new JSONObject();
                 obj.put("email",mEmailView.getText().toString());
+                obj.put("mobile_no",mPhone.getText().toString());
             String result=Connecttoget.callJsonWithparams(Urls.USER_email_check, obj.toString());
 
                 if (new JSONObject(result).getInt("status")==1){
                     if (new JSONObject(result).getString("new_user").equals("1"))
 
                         return true;
+                    else
+                        message=new JSONObject(result).getString("message");
                 }
 
         }catch(JSONException e){
@@ -873,7 +937,7 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
                 attemptSignup();
             }else{
 
-                mEmailView.setError("emailid already exists");
+                mEmailView.setError(message);
 
 
             }
@@ -1391,7 +1455,7 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
                         for (int i = 0; i < size; i++) {
 
 
-                            if ( ApplicationSingleton.apiresultJSON.getJSONObject(i).getJSONArray("userDetails").toString().contains("\"id\":\""+USERID+"\"")) {
+                            if ( ApplicationSingleton.apiresultJSON.getJSONObject(i).getJSONArray("userDetails").toString().contains("\"user_qb_id\":\""+USERID+"\"")) {
                                 modelclass obj = new modelclass();
                                 obj.setGroupName(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("group_name"));
                                 obj.setGroupTags(ApplicationSingleton.apiresultJSON.getJSONObject(i).getJSONArray("tagDetails").toString());
@@ -1480,14 +1544,10 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
                 PreferencesUtils.saveData("distance","km",LoginActivity.this);
                 PreferencesUtils.saveData("distancevalue", "5",LoginActivity.this);// saving initial distance data as 5 km
 
-                if (mEmailSignInButton.getText().toString().equals(getResources().getString(R.string.action_sign_in))) {
+
                     Intent in = new Intent(LoginActivity.this, DialogsActivity.class);
                     startActivity(in);
-                }
-                else{
-                    Intent intent = new Intent(LoginActivity.this, PickContact.class);
-                    startActivity(intent);
-                }
+
 
 
             }else{

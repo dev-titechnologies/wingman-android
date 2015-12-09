@@ -61,10 +61,24 @@ public class Connections extends Fragment {
     public Connections() {
         // Required empty public constructor
     }
-    public Connections(String searchkey) {
-        // Required empty public constructor
+
+    /**
+     *  method to create a new instance of
+     * this fragment using the provided parameters.
+     *
+     * @param searchkey Parameter 1 is for getting the serach key passed from serch of toolbar.
+     *
+     * @return A new instance of fragment YourGroups.
+     */
+    public  Connections newInstance(String searchkey,boolean groupcall) {
+        Connections fragment = new Connections();
         key=searchkey;
+        if(!groupcall)
+            searchclassChecker=true;
+
+        return fragment;
     }
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -77,8 +91,7 @@ public class Connections extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_connections, container, false);
-        if( PreferencesUtils.getData("callfromgroup", getActivity()).equals( "false"))
-            searchclassChecker=true;
+
 
         groupsListView = (ListView)view. findViewById(R.id.roomsList);
         connectionsList=(RecyclerView)view.findViewById(R.id.connectionsList) ;

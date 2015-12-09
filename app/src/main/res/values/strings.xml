@@ -15,7 +15,7 @@
     <string name="action_sign_in">Sign in</string>
     <string name="action_fbsign_in">Sign in with fb</string>
     <string name="action_fbsign_up">Sign up with fb</string>
-
+    <string name="action_profile_update">Complete profile</string>
     <string name="action_sign_up">New user Signup</string>
     <string name="btntxt_sign_up">Signup</string>
     <string name="action_sign_in_short">Sign in</string>

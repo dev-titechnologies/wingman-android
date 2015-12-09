@@ -36,4 +36,17 @@
         <!-- Used for the background -->
         <item name="android:background">#4CAF50</item>
     </style>
+
+        <style name="MainTextViewStyle" parent="android:Widget.TextView">
+            <item name="android:fontFamily">sans-serif-light</item>
+            <item name="android:textColor">@color/black</item>
+            <item name="android:textStyle">bold</item>
+            <item name="android:textSize">@dimen/text_main_size</item>
+        </style>
+        <style name="SubTextStyle" parent="android:Widget.TextView">
+            <item name="android:fontFamily">sans-serif-light</item>
+            <item name="android:textColor">@color/subtext_grey</item>
+            <item name="android:textSize">@dimen/text_sub_size</item>
+        </style>
+
 </resources>

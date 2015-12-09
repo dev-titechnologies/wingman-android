@@ -16,7 +16,7 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.telephony.TelephonyManager;
 import android.view.View;
-import android.widget.Toast;
+
 
 import com.quickblox.core.QBEntityCallbackImpl;
 import com.quickblox.users.model.QBUser;
@@ -189,12 +189,13 @@ public class SplashActivity extends app.wingman.ui.activities.BaseActivity imple
                         for (int i = 0; i < size; i++) {
 
 
-                            if ( ApplicationSingleton.apiresultJSON.getJSONObject(i).getJSONArray("userDetails").toString().contains("\"id\":\""+USERID+"\"")) {
+                            if ( ApplicationSingleton.apiresultJSON.getJSONObject(i).getJSONArray("userDetails").toString().contains("\"user_qb_id\":\""+USERID+"\"")) {
                                 modelclass obj = new modelclass();
                                 obj.setGroupName(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("group_name"));
                                 obj.setGroupTags(ApplicationSingleton.apiresultJSON.getJSONObject(i).getJSONArray("tagDetails").toString());
                                 obj.setGroupid(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("group_qb_id"));
                                 obj.setAdminId(ApplicationSingleton.apiresultJSON.getJSONObject(i).getString("admin_id"));
+
                                 obj.setGroupUsers(ApplicationSingleton.apiresultJSON.getJSONObject(i).getJSONArray("userDetails").toString());
 
                                 userList.add(obj);
@@ -292,7 +293,7 @@ public class SplashActivity extends app.wingman.ui.activities.BaseActivity imple
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
 
 
-        Toast.makeText(SplashActivity.this,"contacts loaded",Toast.LENGTH_LONG).show();
+
         if (loader.getId() == ContactsQuery.QUERY_ID) {
 
 

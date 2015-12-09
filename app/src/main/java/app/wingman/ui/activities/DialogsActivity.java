@@ -160,7 +160,8 @@ Log.e("regId",playServicesHelper.regId);
                         return true;
 
                     case R.id.Messages:
-                        Toast.makeText(getApplicationContext(),"Messages Selected",Toast.LENGTH_SHORT).show();
+                        groups = new Intent(getApplicationContext(),DialogsActivity.class);
+                        startActivity(groups);
                         return true;
                     case R.id.CreateGroup:
                         Toast.makeText(getApplicationContext(),"CreateGroup Selected",Toast.LENGTH_SHORT).show();

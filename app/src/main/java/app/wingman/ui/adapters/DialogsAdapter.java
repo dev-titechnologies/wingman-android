@@ -1,7 +1,7 @@
 package app.wingman.ui.adapters;
 
 /**
- * Created by igorkhomenko on 9/12/14.
+ * Created by ajay on 9/12/14.
  */
 
 import android.app.Activity;
@@ -27,8 +27,14 @@ public class DialogsAdapter extends BaseAdapter {
     private LayoutInflater inflater;
 
     public DialogsAdapter(List<QBDialog> dataSource, Activity ctx) {
-        this.dataSource = dataSource;
-        this.inflater = LayoutInflater.from(ctx);
+
+        try {
+            this.dataSource = dataSource;
+            this.inflater = LayoutInflater.from(ctx);
+        }catch(Exception e){
+
+            e.printStackTrace();
+        }
     }
 
     public List<QBDialog> getDataSource() {

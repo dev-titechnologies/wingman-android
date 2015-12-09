@@ -138,7 +138,7 @@ public class CommentsDataSource {
 					statement.execute();
 				}else{
 
-					updateUsers(lst.get(i));
+					updateGroup(lst.get(i));
 				}
 
 
@@ -340,6 +340,46 @@ used for searching names
 
 
 
+	public ArrayList<modelclass> getGroupSearchedResult(String searchKey,
+												 String gender){
+
+		ArrayList<modelclass> comments = new ArrayList<modelclass>();
+		String id="0";
+
+		Cursor cursor;
+
+
+
+		if(gender.equals("0")){ // no gender selected by the user in settings page
+			cursor = database.query( MySQLiteHelper.TABLE_GROUP, ColumnsCategory,
+					MySQLiteHelper.GROUP_NAME + " LIKE ? OR " + MySQLiteHelper.USERS + " LIKE ?",
+					new String[] {"%" + searchKey.toLowerCase() + "%", "%" + searchKey.toLowerCase() + "%"},
+					null, null, null, null);
+		}else{
+			cursor = database.query( MySQLiteHelper.TABLE_GROUP, ColumnsCategory,
+					MySQLiteHelper.GROUP_NAME + " LIKE ? OR " + MySQLiteHelper.USERS + " LIKE ?",
+					new String[] {"%" + searchKey.toLowerCase() + "%", "%" + searchKey.toLowerCase() + "%",gender},
+					null, null, null, null);
+
+		}
+
+		cursor.moveToFirst();
+		while (!cursor.isAfterLast()) {
+
+				modelclass comment = cursorToGroup(cursor);
+				comments.add(comment);
+				cursor.moveToNext();
+
+
+		}
+		// make sure to close the cursor
+		cursor.close();
+
+		// make sure to close the cursor
+		return comments;
+	}
+
+
 
 	public JSONObject getcacheResponse(String url, String url_params) {
 		JSONObject comments = null;
@@ -417,7 +457,7 @@ used for searching names
 	private modelclass cursorToGroup(Cursor cursor) {
 
 		modelclass comment = new modelclass();
-		//System.out.println("savingid"+cursor.getString(0));
+		System.out.println("search result "+cursor.getString(1));
 		comment.setGroupid(cursor.getString(0));
 
 		comment.setGroupName(cursor.getString(1));

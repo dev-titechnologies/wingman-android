@@ -1,5 +1,6 @@
 package app.wingman.ui.activities;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -192,6 +193,10 @@ public class ConnectionsAndRequests extends AppCompatActivity implements MyConne
             super.onPostExecute(aBoolean);
             if(ApplicationSingleton.RESPONSETAG.equals("1") && fromRequest)
                 ApplicationSingleton.ShowSuccessAlert(ConnectionsAndRequests.this,"Successfully added to group");
+            Intent in=new Intent(ConnectionsAndRequests.this, ConnectionsAndRequests.class);
+           startActivity(in);
+
+            finish();
 
         }
     }

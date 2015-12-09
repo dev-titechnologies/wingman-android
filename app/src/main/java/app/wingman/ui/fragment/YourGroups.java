@@ -5,6 +5,8 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,11 +22,16 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
+import app.wingman.ApplicationSingleton;
 import app.wingman.R;
+import app.wingman.database.CommentsDataSource;
+import app.wingman.models.modelclass;
 import app.wingman.networks.Connecttoget;
 import app.wingman.settings.Urls;
 import app.wingman.ui.adapters.ConnectionsAdapter;
+import app.wingman.ui.adapters.SearchGroupsAdapter;
 import app.wingman.ui.adapters.YourGroupsAdapter;
+import app.wingman.utils.GetMyLocation;
 import app.wingman.utils.PreferencesUtils;
 
 /**
@@ -45,27 +52,28 @@ public class YourGroups extends Fragment {
     private String mParam1;
     private String mParam2;
 
-
+    private boolean searchclassChecker=false;
+    String key;
 
     public YourGroups() {
         // Required empty public constructor
     }
 
     /**
-     * Use this factory method to create a new instance of
+     *  method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
+     * @param searchkey Parameter 1 is for getting the serach key passed from serch of toolbar.
+     * @param groupcall Parameter 2 is for checking whether the parent is called for searching purpose or not.
      * @return A new instance of fragment YourGroups.
      */
     // TODO: Rename and change types and number of parameters
-    public static YourGroups newInstance(String param1, String param2) {
+    public YourGroups newInstance(String searchkey,boolean groupcall) {
         YourGroups fragment = new YourGroups();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
+       key=searchkey;
+        if(!groupcall)
+            searchclassChecker=true;
+
         return fragment;
     }
 
@@ -77,7 +85,8 @@ public class YourGroups extends Fragment {
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
     }
-ListView groups;
+    ListView groups;
+    RecyclerView searchList;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -87,7 +96,9 @@ ListView groups;
         v = inflater.inflate(R.layout.fragment_your_groups, container, false);
         groups = (ListView)v.findViewById(R.id.groups);
 
-
+   searchList=(RecyclerView)v.findViewById(R.id.groupsList);
+        searchList.setLayoutManager(new LinearLayoutManager(getActivity()));
+        searchList.setHasFixedSize(true);
 
         return v;
     }
@@ -126,25 +137,53 @@ ListView groups;
         protected void onPostExecute(String getdata) {
             super.onPostExecute(getdata);
             try {
-                Log.e("res yourgroups",getdata);
-                JSONObject alltagarray = new JSONObject(getdata);
-                if(alltagarray.getInt("status")==1) {
-JSONArray cc = alltagarray.getJSONArray("groupList");
-                    ArrayList<String> groupnames = new ArrayList<String>();
-                    for(int i =0;i<cc.length();i++){
+                if( searchclassChecker==true){
 
-                        JSONObject c = cc.getJSONObject(i);
+                    try {
+                        CommentsDataSource obj = new CommentsDataSource(getActivity());
+                        obj.open();
 
-                        groupnames.add(c.getString("group_name"));
+                        String gender= PreferencesUtils.getData("gender",getActivity());
+
+                        ArrayList<modelclass> listt=(obj.getGroupSearchedResult(key.toLowerCase(),gender));
+                        if(listt.size()>0) {
+                            searchList.setVisibility(View.VISIBLE);
+                            groups.setVisibility(View.GONE);
+                            SearchGroupsAdapter adapter = new SearchGroupsAdapter(listt);
+                            searchList.setAdapter(adapter);
+
+                        }else
+                            ApplicationSingleton.ShowFailedAlert(getActivity(),"No search result found for groups");
+
+
+                    }catch(Exception e){
+
+                        e.printStackTrace();
+                        ApplicationSingleton.ShowFailedAlert(getActivity(),"No search group found error");
+
 
                     }
-Log.e("groupnames",groupnames.toString());
-                    YourGroupsAdapter adapter = new YourGroupsAdapter(groupnames,getActivity());
-                    groups.setAdapter(adapter);
-                    adapter.notifyDataSetChanged();
-                }
-                else{
-                    Toast.makeText(getActivity(),"ERROR FROM SERVER.!!",2000).show();
+
+                }else {
+
+
+                    JSONObject alltagarray = new JSONObject(getdata);
+                    if (alltagarray.getInt("status") == 1) {
+                        JSONArray cc = alltagarray.getJSONArray("groupList");
+                        ArrayList<String> groupnames = new ArrayList<String>();
+                        for (int i = 0; i < cc.length(); i++) {
+
+                            JSONObject c = cc.getJSONObject(i);
+
+                            groupnames.add(c.getString("group_name"));
+
+                        }
+                        searchList.setVisibility(View.GONE);
+                        groups.setVisibility(View.VISIBLE);
+                        YourGroupsAdapter adapter = new YourGroupsAdapter(groupnames, getActivity());
+                        groups.setAdapter(adapter);
+                        adapter.notifyDataSetChanged();
+                    }
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -157,15 +196,5 @@ Log.e("groupnames",groupnames.toString());
 
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
 
 }

@@ -1,6 +1,8 @@
 package app.wingman.ui.adapters;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,6 +13,8 @@ import android.widget.TextView;
 import app.wingman.ApplicationSingleton;
 import app.wingman.R;
 import app.wingman.models.modelclass;
+import app.wingman.ui.activities.ConnectionsAndRequests;
+import app.wingman.ui.fragment.Connections;
 import app.wingman.ui.fragment.MyRequests;
 
 
@@ -64,7 +68,8 @@ public class MyRequestsRecyclerViewAdapter extends RecyclerView.Adapter<MyReques
                 ApplicationSingleton.UserTag=view.getTag(R.string.connections_userid).toString();
 
                 mValues.remove(Integer.parseInt(view.getTag(R.string.connections_POSITIONS).toString()));
-                notifyDataSetChanged();
+
+
                 mListener.onListFragmentInteraction(1);
             }
         });
@@ -74,10 +79,13 @@ public class MyRequestsRecyclerViewAdapter extends RecyclerView.Adapter<MyReques
                 ApplicationSingleton.GroupTag=view.getTag(R.string.connections_groupid).toString();
                 ApplicationSingleton.UserTag=view.getTag(R.string.connections_userid).toString();
                 ApplicationSingleton.RESPONSETAG="0";
-                System.out.println("sizee"+mValues.size());
+
                 mValues.remove(Integer.parseInt(view.getTag(R.string.connections_POSITIONS).toString()));
-                notifyDataSetChanged();
+
                 mListener.onListFragmentInteraction(2);
+
+
+
             }
         });
 
@@ -86,6 +94,7 @@ public class MyRequestsRecyclerViewAdapter extends RecyclerView.Adapter<MyReques
 
     @Override
     public int getItemCount() {
+        System.out.println("sizee"+mValues.size());
         return mValues.size();
     }
 
